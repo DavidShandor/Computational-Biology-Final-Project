@@ -2,12 +2,7 @@ import os
 import re
 from Bio import SeqIO
 
-## read file and import details
-january = 'CoronaJanuary2022.gb'
-july = 'CoronaJuly2020.gb'
-# making sure that the path is valid
-assert (os.path.exists(january))
-assert (os.path.exists(july))
+
 
 
 def parser(files):
@@ -25,17 +20,20 @@ def parser(files):
     print(result)
     features = record_gb.features
     print(len(features))
-
-
+    print(features)
+    return features
 
 
 def main():
-    parser(january)
-    parser(july)
-
-
-
-
+    ## read file and import details
+    january = 'CoronaJanuary2022.gb'
+    july = 'CoronaJuly2020.gb'
+    # making sure that the path is valid
+    assert (os.path.exists(january))
+    assert (os.path.exists(july))
+    feat_jan = parser(january)
+    feat_july = parser(july)
+    
 
 if __name__ == '__main__':
     main()
