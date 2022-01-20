@@ -1,6 +1,6 @@
 import os
 import re
-from Bio import SeqIO
+from Bio import SeqIO, pairwise2
 
 
 
@@ -33,7 +33,7 @@ def main():
     assert (os.path.exists(july))
     feat_jan = parser(january)
     feat_july = parser(july)
-    
+
 
 if __name__ == '__main__':
     main()
