@@ -25,9 +25,30 @@ print(result)
 features = record_gb.features
 print(len(features))
 
-CDS = genes = regulators = 0
+Genome_dict = {
+    'CDS':0,
+    'Genes':0,
+    'Other':0
+}
+
+gene_dict = []
+protein_dict = []
+
+def asd(_feature):
+    lenght = _feature.end.position - _feature.start.position
+    return {
+        'feature': _feature,
+        'len': lenght
+    }
 
 for f in features:
-    if f.type == 'gene': genes +=1 
-    elif f.type =='CDS': CDS +=1 
-    else: regulators += 1
+    if f.type == 'gene':
+        Genome_dict['Genes'] +=1
+        gene_dict.append(asd(f))
+    elif f.type =='CDS': 
+        Genome_dict['CDS'] +=1
+        protein_dict.append(asd(f))
+    else:
+        Genome_dict['Other'] += 1
+        gene_dict.append(asd(f))
+
