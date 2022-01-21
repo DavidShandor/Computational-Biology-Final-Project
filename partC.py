@@ -74,6 +74,7 @@ def main():
     assert (os.path.exists(july))
 
     # 3.1
+    
     corona_dna_sequence = get_dna_sequence(july)
     count_codons(corona_dna_sequence)
 
