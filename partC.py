@@ -65,17 +65,22 @@ def count_codons(seq):
 
 
 def main():
+    # PART III
     ## read file and import details
     january = 'CoronaJanuary2022.gb'
     july = 'CoronaJuly2020.gb'
     # making sure that the path is valid
     assert (os.path.exists(january))
     assert (os.path.exists(july))
+
+    # 3.1
+    corona_dna_sequence = get_dna_sequence(july)
+    count_codons(corona_dna_sequence)
+
+    # 3.2
     feat_jan = parser(january)
     feat_july = parser(july)
     features_compare(feat_jan, feat_july)
-    corona_dna_sequence = get_dna_sequence(july)
-    count_codons(corona_dna_sequence)
 
 
 if __name__ == '__main__':
