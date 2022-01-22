@@ -3,7 +3,8 @@ from pprint import pprint
 from part_a import GatherInfoAboutAGenome
 
 
-gene_info = GatherInfoAboutAGenome('BS168.gb')
+gene_info = GatherInfoAboutAGenome('BS168.gb',
+                                   'part_a_automated.txt')
 all_genes = gene_info.get_all_genes_type_and_amount()
 print(f'All genes: {all_genes}')
 
@@ -26,8 +27,9 @@ gene_info.build_histograms('All',
 gc_percentage_full_gene, gc_average_percentage_proteins, proteins_gc_percentage, five_highest_gc_genes, five_lowest_gc_genes = gene_info.calculate_gc_percentage_in_genes(protein_info['length'])
 print(f'gc_full: {gc_percentage_full_gene}')
 print(f'gc_average: {gc_average_percentage_proteins}')
-pprint(f'five higest: {five_highest_gc_genes}')
+print(f'five highest: {five_highest_gc_genes}')
 pprint(f'five lowest: {five_lowest_gc_genes}')
+
 gene_info.build_histograms(histogram_title='GC percentage proteins',
                            histogram_value=proteins_gc_percentage,
                            x_label='GC percentage',
@@ -37,5 +39,8 @@ gene_info.build_histograms(histogram_title='GC percentage proteins',
                            y_low_lim=0,
                            y_high_lim=100)
 
+data_file_errors = gene_info.consistent_checks_data_file()
+print(f'Data file errors: {data_file_errors}')
 
-## **** question 4 min 29 ** ##
+gene_info.create_dataframe_for_errors_in_data(columns=['Gene name', 'Start position', 'End position', 'Strand', 'Error'],
+                                              data=data_file_errors)

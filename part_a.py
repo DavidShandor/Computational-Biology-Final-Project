@@ -1,19 +1,29 @@
+import operator
 import os
 import re
 import sys
 from typing import NamedTuple
-
 import Bio
 import matplotlib.pyplot as plt
 from Bio import SeqIO
+from Bio.Data.CodonTable import TranslationError
+import pandas as pd
 
 
 class GeneInfo(NamedTuple):
-    gc_percentage: int
+    gc_percentage: float
     gene_name: str
     start: int
     end: int
     strand: int
+
+
+class DataFileErrorGenes(NamedTuple):
+    gene_name: str
+    start: int
+    end: int
+    strand: int
+    error: str
 
 
 def highest_gc_in_list(genes_info: list[GeneInfo]) -> GeneInfo:
@@ -72,8 +82,17 @@ def five_highest_gc(five_highest_gc_genes: list,
 
 
 def five_lowest_gc(five_lowest_gc_genes: list,
-                   feature,
+                   feature: Bio.SeqFeature.SeqFeature,
                    current_gene_seq_gc_percentage: float) -> list:
+    """
+    gets a list of the lowest gc percentage genes finds the lowest one
+    and replaces it with the new value
+    :param five_lowest_gc_genes: a list with five genes (their info)
+    :param feature: all the info about the gene
+    :param current_gene_seq_gc_percentage: the gene gc percentage
+    :return: a list with 5 genes
+    """
+
     highest_value = highest_gc_in_list(five_lowest_gc_genes)
     five_lowest_gc_genes.remove(highest_value)
     five_lowest_gc_genes.append(GeneInfo(gc_percentage=current_gene_seq_gc_percentage,
@@ -84,12 +103,37 @@ def five_lowest_gc(five_lowest_gc_genes: list,
     return five_lowest_gc_genes
 
 
+def convert_to_protein(gene_seq: Bio.Seq.Seq,
+                       strand: int,
+                       table: int) -> tuple[bool,str]:
+    """
+    convert gene sequence to protein
+    :param gene_seq: the gene sequence as Bio.Seq
+    :param strand: the strand 1/-1
+    :param table: the table to use as int
+    :return: a tuple[ error occurred false/true, the translation/error]
+    """
+    if strand == -1:
+        gene_seq = gene_seq.reverse_complement()
+
+    try:
+        return False, str(gene_seq.translate(table=table,
+                                             cds=True))
+    except TranslationError as error:
+        return True, str(error)
+
+
 class GatherInfoAboutAGenome:
     def __init__(self,
-                 gene_bank_file: str):
+                 gene_bank_file: str,
+                 answers_file: str):
 
         self.features = None
         self.record_gb = None
+        self.answers_file = answers_file
+
+        with open(answers_file, 'w') as answersFile:
+            answersFile.write('Part A answers\n')
 
         assert (os.path.exists(gene_bank_file)), 'gene bank file does not exist'
 
@@ -121,6 +165,11 @@ class GatherInfoAboutAGenome:
             else:
                 gene_type_and_amount[feature.type] = gene_type_and_amount[feature.type] + 1
 
+        with open(self.answers_file, 'a') as answersFile:
+            answersFile.write('\n1.Number of elements of every type in the file\n')
+            for gene, amount in gene_type_and_amount.items():
+                answersFile.write(f'\t"{gene}" : "{amount}"\n')
+
         return gene_type_and_amount
 
     def characterization_of_gene_lengths(self) -> tuple[dict, dict, list, list, list]:
@@ -151,7 +200,7 @@ class GatherInfoAboutAGenome:
         }
 
         for feature in self.features:
-            if not(feature.type == 'gene' or feature.type == 'source'):
+            if not (feature.type == 'gene' or feature.type == 'source'):
                 gen_length = feature.location.end.position - feature.location.start.position
                 all_genes_lengths.append(gen_length)
 
@@ -176,6 +225,16 @@ class GatherInfoAboutAGenome:
 
         protein_info['average_length'] = protein_info['length'] / protein_info['amount']
         non_protein_info['average_length'] = non_protein_info['length'] / non_protein_info['amount']
+
+        with open(self.answers_file, 'a') as answersFile:
+            answersFile.write('\n2.Statistics for proteins/non proteins\n')
+            answersFile.write('Proteins -\n')
+            for key, value in protein_info.items():
+                answersFile.write(f'\t"{key}" : "{value}"\n')
+            answersFile.write('Non proteins -\n')
+            for key, value in protein_info.items():
+                answersFile.write(f'\t"{key}" : "{value}"\n')
+            answersFile.write('** histograms for all genes/protein/non protein will be shown on screen\n')
 
         return protein_info, non_protein_info, protein_lengths, non_protein_lengths, all_genes_lengths
 
@@ -282,9 +341,108 @@ class GatherInfoAboutAGenome:
                                                          strand=feature.strand))
 
                 if current_gene_seq_gc_percentage > lowest_gc_in_list(five_highest_gc_genes).gc_percentage:
-                    five_highest_gc_genes = five_highest_gc(five_highest_gc_genes, feature, current_gene_seq_gc_percentage)
+                    five_highest_gc_genes = five_highest_gc(five_highest_gc_genes, feature,
+                                                            current_gene_seq_gc_percentage)
                 if current_gene_seq_gc_percentage < highest_gc_in_list(five_lowest_gc_genes).gc_percentage:
                     five_lowest_gc_genes = five_lowest_gc(five_lowest_gc_genes, feature, current_gene_seq_gc_percentage)
 
+        five_highest_gc_genes = sorted(five_highest_gc_genes, key=operator.attrgetter('gc_percentage'))
+        five_lowest_gc_genes = sorted(five_lowest_gc_genes, key=operator.attrgetter('gc_percentage'))
 
+        with open(self.answers_file, 'a') as answersFile:
+            answersFile.write('\n3.Calculation of GC percentage in genes\n')
+            answersFile.write(f'\t Full gene GC percentage: {gc_percentage_full_gene}\n')
+            answersFile.write(f'\t Average GC percentage in proteins: {gc_average_percentage_proteins}\n')
+            answersFile.write('Five highest GC percentage genes-\n')
+            for gene in five_highest_gc_genes:
+                answersFile.write(f'Gene name: {gene[1][0]}\n')
+                answersFile.write(f'\t GC percentage: {gene[0]}\n')
+                answersFile.write(f'\t Start: {gene[2]}\n')
+                answersFile.write(f'\t End: {gene[3]}\n')
+                answersFile.write(f'\t Strand: {gene[4]}\n')
+            answersFile.write('Five lowest GC percentage genes-\n')
+            for gene in five_lowest_gc_genes:
+                answersFile.write(f'Gene name: {gene[1][0]}\n')
+                answersFile.write(f'\t GC percentage: {gene[0]}\n')
+                answersFile.write(f'\t Start: {gene[2]}\n')
+                answersFile.write(f'\t End: {gene[3]}\n')
+                answersFile.write(f'\t Strand: {gene[4]}\n')
+            answersFile.write('** histogram for the GC percentage in proteins will be shown on screen\n')
         return gc_percentage_full_gene, gc_average_percentage_proteins, proteins_gc_percentage, five_highest_gc_genes, five_lowest_gc_genes
+
+    def consistent_checks_data_file(self):
+        """
+        checks the data consistent in the data file -
+        1. checks if all the genes that are translated to proteins length is a double of three times
+        2. checks if the translation of the gene to proteins in the data file is correct
+        3. Finds more errors using Bio translate function
+        :return: a list with the genes that raised errors
+        """
+
+        gene_to_protein_length_not_double_of_three = []
+        incorrect_gene_translation = []
+        gene_translation_error = []
+        data_file_errors = []
+
+        for index, feature in enumerate(self.features):
+            cds_index = index + 1
+            if feature.type == 'gene' and self.features[cds_index].type == 'CDS':
+                if feature.location.start.position == self.features[cds_index].location.start.position and feature.location.end.position == self.features[cds_index].location.end.position:
+                    # if (feature.location.end.position - feature.location.start.position) % 3 != 0:
+                    #     gene_to_protein_length_not_double_of_three.append(DataFileErrorGenes(gene_name=feature.qualifiers.get('gene'),
+                    #                                                                          start=feature.location.start.position,
+                    #                                                                          end=feature.location.end.position,
+                    #                                                                          strand=feature.strand,
+                    #                                                                          error='Gene seq length is not a double of three'))
+                    # else:
+                        error_found, gene_to_protein = convert_to_protein(gene_seq=self.record_gb.seq[feature.location.start.position:
+                                                                                                      feature.location.end.position],
+                                                                          strand=self.features[cds_index].location.strand,
+                                                                          table=self.features[cds_index].qualifiers['transl_table'][0])
+                        if error_found:
+                            error = gene_to_protein
+                            data_file_errors.append(DataFileErrorGenes(gene_name=feature.qualifiers.get('gene')[0],
+                                                                       start=feature.location.start.position,
+                                                                       end=feature.location.end.position,
+                                                                       strand=feature.strand,
+                                                                       error=error))
+                        else:
+                            if gene_to_protein != self.features[cds_index].qualifiers['translation'][0]:
+                                data_file_errors.append(DataFileErrorGenes(gene_name=feature.qualifiers.get('gene')[0],
+                                                                           start=feature.location.start.position,
+                                                                           end=feature.location.end.position,
+                                                                           strand=feature.strand,
+                                                                           error='Translations do not match'))
+                else:
+                    # TODO: check what to do if start and end don't match
+                    print('found')
+
+        # print(gene_to_protein_length_not_double_of_three)
+        # print(incorrect_gene_translation)
+
+        with open(self.answers_file, 'a') as answersFile:
+            answersFile.write('\n4.Consistent check in the data file\n')
+            answersFile.write('Data file errors -\n')
+            for error in data_file_errors:
+                answersFile.write(f'Gene name: {error[0]}\n')
+                answersFile.write(f'\t Start: {error[1]}\n')
+                answersFile.write(f'\t End: {error[2]}\n')
+                answersFile.write(f'\t Strand: {error[3]}\n')
+                answersFile.write(f'\t Error: {error[4]}\n')
+            answersFile.write('** gene_exceptions.csv file with the errors was created\n')
+
+        return data_file_errors
+
+    def create_dataframe_for_errors_in_data(self,
+                                            columns: list,
+                                            data: list[DataFileErrorGenes]):
+        all_data = []
+
+        for single_error in data:
+            single_error_list = []
+            for info in single_error:
+                single_error_list.append(info)
+            all_data.append(single_error)
+
+        df = pd.DataFrame(data=all_data, columns=columns)
+        df.to_csv('gene_exceptions.csv', index=False)
