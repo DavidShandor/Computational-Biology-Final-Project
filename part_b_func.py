@@ -8,114 +8,101 @@ from matplotlib.patches import ConnectionPatch
 from genetic_data_file import table, Hidrophobic, Hidrophilic
 
 
-def uni_dataframe_details(df: pd.DataFrame,
-                          col: str):
-    """
-    Gathered information about the DF base on the request column
-    @param df:bla
-    @param col:bla
-    @return:asd
-    """
-
-    null_count = df[col].isna().sum()
-    name_df = df[df[col].notna()]
-    name_series = name_df[col]
-    name_unique = name_series.nunique()
-    name_count = len(list(name_series))
-    name_series.drop_duplicates(inplace=True)
-    total_gb = name_count + null_count
-    duplicate_names = name_count - name_unique
-
-    print('Total genes in UniProtKB file: ', total_gb)
-    print('Number of named genes: ', name_count)
-    print('Number of genes without name: ', null_count)
-    print('Number of unique genes name: ', name_unique)
-    print('Number of Duplicates genes by name: ', duplicate_names)
-
-    return name_df, list(name_series), name_unique, name_count, total_gb, duplicate_names
-
-
+# def uni_dataframe_details(df: pd.DataFrame,
+#                           col: str):
+#     """
+#     Gathered information about the DF base on the request column
+#     @param df:bla
+#     @param col:bla
+#     @return:asd
+#     """
+#
+#     null_count = df[col].isna().sum()
+#     name_df = df[df[col].notna()]
+#     name_series = name_df[col]
+#     name_unique = name_series.nunique()
+#     name_count = len(list(name_series))
+#     name_series.drop_duplicates(inplace=True)
+#     total_gb = name_count + null_count
+#     duplicate_names = name_count - name_unique
+#
+#     print('Total genes in UniProtKB file: ', total_gb)
+#     print('Number of named genes: ', name_count)
+#     print('Number of genes without name: ', null_count)
+#     print('Number of unique genes name: ', name_unique)
+#     print('Number of Duplicates genes by name: ', duplicate_names)
+#
+#     return name_df, list(name_series), name_unique, name_count, total_gb, duplicate_names
 
 
-
-    return df
-
-
-features = parse_genebank_file('BS168.gb')
-df = create_dataframe(features)
-
-
-def features_analysis(features: list):
-    """Analyze the features of the gene, mainly by genes name"""
-
-    features_prot_names = []
-    feature_prot = []
-    gb_null_counter = 0
-
-    for feature in features:
-        if feature.type == 'CDS':
-            feature_prot.append(feature)
-            if feature.qualifiers.get('gene') is not None:
-                features_prot_names.append(feature.qualifiers.get('gene')[0])
-            else:
-                gb_null_counter += 1
-
-    total_gb_prot = gb_null_counter + len(features_prot_names)
-
-    print('Total proteins genes in GeneBank file: ', total_gb_prot)
-    print('Number of named proteins in GB: ', len(features_prot_names))
-    print('Number of unnamed proteins in GB: ', gb_null_counter)
-
-    return feature_prot, features_prot_names, gb_null_counter, total_gb_prot
+# def features_analysis(features: list):
+#     """Analyze the features of the gene, mainly by genes name"""
+#
+#     features_prot_names = []
+#     feature_prot = []
+#     gb_null_counter = 0
+#
+#     for feature in features:
+#         if feature.type == 'CDS':
+#             feature_prot.append(feature)
+#             if feature.qualifiers.get('gene') is not None:
+#                 features_prot_names.append(feature.qualifiers.get('gene')[0])
+#             else:
+#                 gb_null_counter += 1
+#
+#     total_gb_prot = gb_null_counter + len(features_prot_names)
+#
+#     print('Total proteins genes in GeneBank file: ', total_gb_prot)
+#     print('Number of named proteins in GB: ', len(features_prot_names))
+#     print('Number of unnamed proteins in GB: ', gb_null_counter)
+#
+#     return feature_prot, features_prot_names, gb_null_counter, total_gb_prot
 
 
-def compare_files_data(gb_name: list,
-                       uni_name: list):
+def compare_files_data(gb_df: pd.DataFrame,
+                       uni_df: pd.DataFrame) -> tuple[list: pd.DataFrame]:
     # same protein in both
-    same_prot = set(gb_name).intersection(set(uni_name))
+    same_prot = gb_df[gb_df['locus_tag'] == uni_df['lucos']]
     # protein exist only in genebank file
-    gb_only = set(gb_name).difference(set(uni_name))
+    gb_only = gb_df[gb_df['locus_tag'] != uni_df['lucos']]
     # protein exist only in UniPortKB file
-    uni_only = set(uni_name).difference(set(gb_name))
+    uni_only = uni_df[uni_df['locus'] != gb_df['lucos_tag']]
 
-    # uni_only = pd.Series(list(uni_only))
-    # uni_same = list(same_prot)
-
-    same_len = len(same_prot)
-    gb_only_len = len(gb_only)
-    uni_only_len = len(uni_only)
-    same_dup = len(gb_name) - same_len - gb_only_len
+    same_len = len(same_prot.index)
+    gb_only_len = len(gb_only.index)
+    uni_only_len = len(uni_only.index)
+    same_dup = len(gb_df.index) - same_len - gb_only_len
     print('Same proteins in both files: ', same_len)
     print('Proteins in GeneBank only: ', gb_only_len)
     print('Proteins in UniProt only: ', uni_only_len)
     print('Number of Duplicates in Same proteins list: ', same_dup)
 
-    return same_prot, gb_only, uni_only, same_len, gb_only_len, uni_only_len, same_dup
+    return same_prot, gb_only, uni_only
 
 
-def get_same_diff_from_gb(features: list,
-                          same_prot: list):
-    gb_same = []
-    gb_diff = []
-    gb_count = 0
-    for feature in features:
-        if feature.type == 'CDS':
-            if feature.qualifiers.get('gene') is not None:
-                gb_count += 1
-                if feature.qualifiers.get('gene')[0] in same_prot:
-                    gb_same.append(feature)
-                else:
-                    gb_diff.append(feature)
+# def get_same_diff_from_gb(features: list,
+#                           same_prot: list): pass
+    # gb_same = []
+    # gb_diff = []
+    # gb_count = 0
+    # for feature in features:
+    #     if feature.type == 'CDS':
+    #         if feature.qualifiers.get('gene') is not None:
+    #             gb_count += 1
+    #             if feature.qualifiers.get('gene')[0] in same_prot:
+    #                 gb_same.append(feature)
+    #             else:
+    #                 gb_diff.append(feature)
+    #
+    # return gb_same, gb_diff, gb_count
 
-    return gb_same, gb_diff, gb_count
 
-
-def create_diff_dataframe(df: pd.DataFrame,
-                          uni_only: list,
-                          col: str):
-    # Data frame of the differences, e.g. gene only in UniPort.
-    df_diff = df[df[col].isin(uni_only)]
-    return df_diff.drop_duplicates(subset=col)
+# def create_diff_dataframe(df: pd.DataFrame,
+#                           uni_only: list,
+#                           col: str):
+#     # Data frame of the differences, e.g. gene only in UniPort.
+#     df_diff = df[df[col].isin(uni_only)]
+#     return df_diff.drop_duplicates(subset=col)
 
 
 def make_autopct(values):
@@ -242,12 +229,13 @@ def create_transmembrane_df(df: pd.DataFrame):
 
 def plot_hist(_data,
               _bins,
-              xlabel: str,
-              ylabel: str,
+              x_label: str,
+              y_label: str,
               title: str):
-    plt.hist(_data, bins=_data)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+
+    plt.hist(_data, bins=_bins)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     plt.title(title, fontweight="bold")
     plt.tight_layout()
     plt.show()

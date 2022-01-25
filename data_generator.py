@@ -67,11 +67,15 @@ class GeneticDataGenerator:
                 qualifiers[i] = feature.qualifiers
 
             main_df = pd.DataFrame()
+            # location_start = pd.Series(location_start)
+            # location_end = pd.Series(location_end)
             main_df['type'] = pd.Series(gene_type)
+            main_df['strand'] = pd.Series(location_strand)
             main_df['start'] = pd.Series(location_start)
             main_df['end'] = pd.Series(location_end)
-            main_df['strand'] = pd.Series(location_strand)
-            main_df['sequence'] = self.sequence[main_df['start']:main_df['end']]
+            # main_df['start'] = pd.to_numeric(location_start)
+            # main_df['end'] = pd.to_numeric(location_end)
+            main_df = main_df.assign(sequence=main_df.apply(lambda x: self.sequence[x.start:x.end], axis=1))
 
             df_temp = pd.DataFrame(qualifiers)
             df_temp = df_temp.transpose()
@@ -88,4 +92,3 @@ class GeneticDataGenerator:
         self.read_uni_dataframe()
         self.parse_genebank_file()
         self.create_gb_dataframe()
-
