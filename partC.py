@@ -49,8 +49,6 @@ def parser(files):
         gen = SeqIO.parse(input_handle, 'genbank')
         record_gb = next(gen)  # content of 1st record
     features = record_gb.features
-    print(len(features))
-    print(features[0])
     return features
 
 
@@ -63,7 +61,6 @@ def get_dna_sequence(dna):
     with open(dna, "r") as input_handle:
         gen = SeqIO.parse(input_handle, 'genbank')
         record_gb = next(gen)  # content of 1st record
-    #print(str(record_gb.seq))
     print("total features: " + str(len(record_gb.features)))
     count = 0
     for feature in record_gb.features:
@@ -71,8 +68,6 @@ def get_dna_sequence(dna):
             count += 1
             # print(feature)
     print("number of CDS features: " + str(count))
-    #print(record_gb.features[0])
-    #print(record_gb.features)
     return str(record_gb.seq)
 
 
@@ -83,14 +78,42 @@ def features_compare(feat1, feat2):
     :param feat2: second pair of the feature sequence we want to compare (january cov)
     :return: the similar features of these 2 sequences
     """
-    for i, feature in enumerate(feat1[1:3]):
-        print('i: ', i)
-        print('feature.type: ', feature.type)
-        print('feature.location: ', feature.location)
-        print('feature.strand: ', feature.strand)
-        print('feature.qualifiers: ', feature.qualifiers)
-        print('feature.id: ', feature.id)
-        print('=====================')
+    feat1_list = []
+    feat2_list = []
+    similar = []
+    dif = []
+    feat1_count = count_genes(feat1, feat1_list)
+    feat2_count = count_genes(feat2, feat2_list)
+    print(feat1_count, feat2_count)
+
+    for feature in feat1_list:
+        if feature in feat2_list:
+            similar.append(feature)
+        else:
+            dif.append(feature)
+    print("similar genes:")
+    print(similar)
+    print("different genes:")
+    print(dif)
+
+
+def count_genes(features, feat_list):
+    print("These are the features:")
+    print("================================== \n")
+    num_genes = 0
+    for f in features:
+        if "gene" in f.qualifiers.keys():
+            name = f.qualifiers["gene"][0]
+            print(f.qualifiers["gene"][0])
+            feat_list.append(name)
+    #for i in range(len(features)):
+        #f = features[i]
+        #if f.type == 'gene' or f.type == 'CDS':
+            # feat_list = f.qualifiers['locus_tag']
+            #print(f.qualifiers)
+            # feat_list.append(f.qualifiers)
+            #num_genes += 1
+    return feat_list
 
 
 def count_codons(seq):
@@ -142,6 +165,8 @@ def main():
     corona_dna_sequence = get_dna_sequence(july)
     count_codons(corona_dna_sequence)
     print(count_mutation_by_type())
+    print("END OF PART 1")
+    print("================================== \n")
 
     # 3.2
     feat_jan = parser(january)
