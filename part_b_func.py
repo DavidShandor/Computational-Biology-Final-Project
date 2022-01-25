@@ -5,38 +5,7 @@ import numpy as np
 import regex as re
 import matplotlib.pyplot as plt
 from matplotlib.patches import ConnectionPatch
-
-table = {
-    'ATA': 'I', 'ATC': 'I', 'ATT': 'I', 'ATG': 'M',
-    'ACA': 'T', 'ACC': 'T', 'ACG': 'T', 'ACT': 'T',
-    'CTA': 'L', 'CTC': 'L', 'CTG': 'L', 'CTT': 'L',
-    'AAC': 'N', 'AAT': 'N', 'AAA': 'K', 'AAG': 'K',
-    'AGC': 'S', 'AGT': 'S', 'AGA': 'R', 'AGG': 'R',
-    'CCA': 'P', 'CCC': 'P', 'CCG': 'P', 'CCT': 'P',
-    'CAC': 'H', 'CAT': 'H', 'CAA': 'Q', 'CAG': 'Q',
-    'GTA': 'V', 'GTC': 'V', 'GTG': 'V', 'GTT': 'V',
-    'CGA': 'R', 'CGC': 'R', 'CGG': 'R', 'CGT': 'R',
-    'GCA': 'A', 'GCC': 'A', 'GCG': 'A', 'GCT': 'A',
-    'GAC': 'D', 'GAT': 'D', 'GAA': 'E', 'GAG': 'E',
-    'GGA': 'G', 'GGC': 'G', 'GGG': 'G', 'GGT': 'G',
-    'TCA': 'S', 'TCC': 'S', 'TCG': 'S', 'TCT': 'S',
-    'TTC': 'F', 'TTT': 'F', 'TTA': 'L', 'TTG': 'L',
-    'TAC': 'Y', 'TAT': 'Y', 'TAA': '_', 'TAG': '_',
-    'TGC': 'C', 'TGT': 'C', 'TGA': '_', 'TGG': 'W',
-}
-
-Hidrophobic = ('A', 'F', 'L', 'I', 'M', 'P', 'W')
-Hidrophilic = ('G', 'S', 'Y', 'Q', 'K', 'D', 'T', 'C', 'N', 'R', 'H', 'E')
-
-
-def read_uni_dataframe(filepath: str):
-    """
-    Read file and generate pandas dataframe
-    @param filepath: file path to load
-    @return: Data frame contain file data
-    """
-    assert (os.path.exists(filepath))  # sanity check
-    return pd.read_excel(filepath)
+from genetic_data_file import table, Hidrophobic, Hidrophilic
 
 
 def uni_dataframe_details(df: pd.DataFrame,
@@ -66,15 +35,14 @@ def uni_dataframe_details(df: pd.DataFrame,
     return name_df, list(name_series), name_unique, name_count, total_gb, duplicate_names
 
 
-def parse_genebank_file(filepath: str):
-    """Parse the GeneBank file and return its features"""
-    assert (os.path.exists(filepath))
 
-    with open(filepath, "r") as input_handle:
-        gen = SeqIO.parse(input_handle, "genbank")
-        record_gb = next(gen)
 
-    return record_gb.features
+
+    return df
+
+
+features = parse_genebank_file('BS168.gb')
+df = create_dataframe(features)
 
 
 def features_analysis(features: list):
@@ -200,6 +168,8 @@ def plot_gene_pie(_data, _labels, _titles, _exp, _angle, _width):
     con.set_linewidth(2)
 
     plt.show()
+
+
 # TODO: GET THIS FUNCTION WORKS!
 # def hell_func_to_plot_graph():
 #     uni_file_count = len(prot_names)
@@ -293,5 +263,3 @@ def calc_gf_in_uni(df: pd.DataFrame,
     b_gc = list(df['GC%'])
 
     return df, max(b_gc), min(b_gc), np.median(b_gc), np.average(b_gc)
-
-
