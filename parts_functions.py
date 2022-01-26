@@ -2,6 +2,7 @@ import Bio
 import regex as re
 import numpy as np
 import pandas as pd
+from Bio.Seq import translate, reverse_complement
 from typing import NamedTuple
 import matplotlib.pyplot as plt
 from genetic_data_file import Hidrophobic
@@ -10,34 +11,33 @@ from data_generator import GeneticDataGenerator
 from Bio.Data.CodonTable import TranslationError
 
 
-def get_all_genes_type_and_amount(obj: GeneticDataGenerator) -> dict:
+def get_all_genes_type_and_amount(df: pd.DataFrame,
+                                  col: str = 'type') -> dict:
     """
     Count genes by type (CDS/rRNA/misc_RNA etc...)
     :return: a dictionary with the key gene type and the value its amount
     ** 73612 line in gb file (misc_feature number 46) there is a gene that has CDS and misc_features
     """
-    s = obj.gb_df['type'].value_counts()
-
-    return dict(s)
+    return dict(df[col].value_counts())
 
 
 def calc_df_stats(_s: pd.Series) -> dict:
     return{
-        'total length': _s.sum(),
-        'max length': _s.max(),
-        'min length': _s.min(),
-        'average length': _s.mean(),
-        'median length': _s.median(),
+        'total_length': _s.sum(),
+        'max_length': _s.max(),
+        'min_length': _s.min(),
+        'average_length': _s.mean(),
+        'median_length': _s.median(),
     }
 
 
 def calc_list_stats(_s: list) -> dict:
     return{
-        'total length': sum(_s),
-        'max length': max(_s),
-        'min length': min(_s),
-        'average length': np.average(_s),
-        'median length': np.median(_s),
+        'total_length': sum(_s),
+        'max_length': max(_s),
+        'min_length': min(_s),
+        'average_length': np.average(_s),
+        'median_length': np.median(_s),
     }
 
 
@@ -115,15 +115,15 @@ def build_histograms(hist_title: str,
 
 # count occurrence of substrings' list in a sequence
 def count_occ_in_seq(seq, occ):
-    c = sum(map(lambda x: x in occ, seq))
-    return c/len(seq)*100
+    gc_sum = sum(map(lambda x: x in occ, seq))
+    return gc_sum/len(seq)*100
 
 
 def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
-                                     df_prot: pd.DataFrame) -> tuple[list: pd.DataFrame, list: float]:
+                                     df_prot: pd.DataFrame) -> tuple[list:pd.DataFrame, list: float]:
     gc = ['G', 'C']
     full_gc_percent = count_occ_in_seq(obj.sequence.upper(), gc)
-    df_prot = df_prot.assign(gc=df_prot.apply(lambda x: count_occ_in_seq(x.sequence, gc), axis=1) )
+    df_prot = df_prot.assign(gc=df_prot.apply(lambda x: count_occ_in_seq(x.sequence, gc), axis=1))
     df_prot = df_prot.rename({'gc': 'gene gc%'}, axis=1)
     avg_prot_gc_percent = df_prot['gene gc%'].mean()
 
@@ -181,9 +181,9 @@ class DataFileErrorGenes(NamedTuple):
     error: str
 
 
-def convert_to_protein(gene_seq: Bio.Seq.Seq,
-                       strand: int,
-                       table: int) -> tuple[bool, str]:
+def convert_to_protein(gene_seq: str,
+                       table: int,
+                       strand: int) -> tuple[bool, str]:
     """
     convert gene sequence to protein
     :param gene_seq: the gene sequence as Bio.Seq
@@ -191,14 +191,17 @@ def convert_to_protein(gene_seq: Bio.Seq.Seq,
     :param table: the table to use as int
     :return: a tuple[ error occurred false/true, the translation/error]
     """
+    # print(table, strand, ind)
     if strand == -1:
-        gene_seq = gene_seq.reverse_complement()
+        gene_seq = reverse_complement(gene_seq)
 
     try:
-        return False, str(gene_seq.translate(table=table,
-                                             cds=True))
+        return False, str(translate(gene_seq, table=table,
+                                    cds=True))
     except TranslationError as error:
         return True, str(error)
+
+
 
 
 def extract_data_from_list_of_objects_to_list_of_lists(list_with_data: list) -> list[list]:
@@ -219,7 +222,7 @@ def extract_data_from_list_of_objects_to_list_of_lists(list_with_data: list) -> 
     return all_data
 
 
-def consistent_checks_data_file(self):
+def consistent_checks_data_file(df: pd.DataFrame) -> list:
     """
     checks the data consistent in the data file -
     1. checks if all the genes that are translated to proteins length is a double of three times
@@ -230,31 +233,40 @@ def consistent_checks_data_file(self):
 
     data_file_errors = []
 
-    for index, feature in enumerate(self.features):
-        cds_index = index + 1
-        if feature.type == 'gene' and self.features[cds_index].type == 'CDS':
-            if feature.location.start.position == self.features[cds_index].location.start.position and feature.location.end.position == self.features[cds_index].location.end.position:
-                error_found, gene_to_protein = convert_to_protein(gene_seq=self.record_gb.seq[feature.location.start.position:
-                                                                                              feature.location.end.position],
-                                                                  strand=self.features[cds_index].location.strand,
-                                                                  table=self.features[cds_index].qualifiers[
-                                                                      'transl_table'][0])
+    # check genes numbers, e.g. if there are 4536 genes (spoiler: NOT) hahaha
+    # genes_number = get_all_genes_type_and_amount(df)
+    #
+    # if genes_number['gene'] != (sum(genes_number.values()) - genes_number['gene'] - 1):
+    #     gen_id = df.locus_tag.mode()
+    #     # df_gene = df[df['locus_tag'] == gen_id[0]]
+    #     # print(df_gene.head)
+    #     print(gen_id)
+
+    for ind in range(len(df.index)):
+        if df.loc[ind, 'type'] == 'gene' and df.loc[ind+1, 'type'] == 'CDS':
+            if df.loc[ind, 'start'] == df.loc[ind+1, 'start'] and df.loc[ind, 'end'] == df.loc[ind+1, 'end']:
+                # print(df.loc[ind, 'transl_table'])
+                error_found, gene_to_protein = convert_to_protein(gene_seq=df.loc[ind, 'sequence'],
+                                                                  strand=df.loc[ind, 'strand'],
+                                                                  table=df.loc[ind+1, 'transl_table'][0])
                 if error_found:
                     error = gene_to_protein
-                    data_file_errors.append(DataFileErrorGenes(gene_name=feature.qualifiers.get('gene')[0],
-                                                               start=feature.location.start.position,
-                                                               end=feature.location.end.position,
-                                                               strand=feature.strand,
+                    data_file_errors.append(DataFileErrorGenes(gene_name=df.loc[ind, 'locus_tag'],
+                                                               start=df.loc[ind, 'start'],
+                                                               end=df.loc[ind, 'end'],
+                                                               strand=df.loc[ind, 'strand'],
                                                                error=error))
                 else:
-                    if gene_to_protein != self.features[cds_index].qualifiers['translation'][0]:
-                        data_file_errors.append(DataFileErrorGenes(gene_name=feature.qualifiers.get('gene')[0],
-                                                                   start=feature.location.start.position,
-                                                                   end=feature.location.end.position,
-                                                                   strand=feature.strand,
+                    if gene_to_protein != df.loc[ind+1, 'translation'][0]:
+                        data_file_errors.append(DataFileErrorGenes(gene_name=df.loc[ind, 'locus_tag'],
+                                                                   start=df.loc[ind, 'start'],
+                                                                   end=df.loc[ind, 'end'],
+                                                                   strand=df.loc[ind, 'strand'],
                                                                    error='Translations do not match'))
             else:
                 pass
+
+    print(data_file_errors)
 
 #     with open(self.answers_file, 'a') as answersFile:
 #         answersFile.write('\n4.Consistent check in the data file\n')
@@ -340,9 +352,9 @@ def create_csv_file(self,
 def compare_files_data(gb_df: pd.DataFrame,
                        uni_df: pd.DataFrame) -> tuple[list: pd.DataFrame]:
     # same protein in both
-    same_prot = gb_df[gb_df['locus_tag'] == uni_df['lucos']]
+    same_prot = gb_df[gb_df['locus_tag'] == uni_df['locus']]
     # protein exist only in genebank file
-    gb_only = gb_df[gb_df['locus_tag'] != uni_df['lucos']]
+    gb_only = gb_df[gb_df['locus_tag'] != uni_df['locus']]
     # protein exist only in UniPortKB file
     uni_only = uni_df[uni_df['locus'] != gb_df['lucos_tag']]
 

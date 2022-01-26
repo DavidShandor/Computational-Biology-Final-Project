@@ -29,7 +29,9 @@ class GeneticDataGenerator:
         self.table = table
         self.hidrophobic = hidrophobic_amino
         self.hidrophilic = hidrophilic_amino
-
+        self.read_uni_dataframe()
+        self.parse_genebank_file()
+        self.create_gb_dataframe()
         # with open(self.answers_file, 'w') as answersFile:
 
     def read_uni_dataframe(self):
@@ -88,7 +90,7 @@ class GeneticDataGenerator:
             _df = _df.drop(columns=cols)
             self.gb_df = _df
 
-    def init_data_(self):
-        self.read_uni_dataframe()
-        self.parse_genebank_file()
-        self.create_gb_dataframe()
+    # def init_data_(self):
+    #     self.read_uni_dataframe()
+    #     self.parse_genebank_file()
+    #     self.create_gb_dataframe()
