@@ -91,14 +91,13 @@ if __name__ == '__main__':
 
     part_b.uni_df.rename({'Gene names  (primary )': 'name',
                           'Gene names  (ordered locus )': 'locus'}, axis=1, inplace=True)
-    #
-    print(part_b.uni_df.columns)
+
     print('Question 1\n')
     same_prot_df, gb_only_df, uni_only_df, duplicates = func.compare_files_data(first_df=part_a.gb_df,
                                                                                 second_df=part_b.uni_df,
                                                                                 col1='locus_tag',
                                                                                 col2='locus')
-    #
+
     # print('Question 2\n')
     # trans_df = func.create_transmembrane_df(part_b.uni_df)
     #

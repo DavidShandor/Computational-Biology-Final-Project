@@ -370,14 +370,14 @@ def compare_files_data(first_df: pd.DataFrame,
     second_only = second_df[second_df[col2].isin(second_only_list)]
 
     same_len = len(same_gene_list)
-    gb_only_len = len(first_only_list)
-    uni_only_len = len(second_only_list)
-    duplicates = len(first_df.index) - same_len - gb_only_len
+    first_only_len = len(first_only_list)
+    second_only_len = len(second_only_list)
+    duplicates = len(first_df.index) + len(second_df.index) - same_len - first_only_len - second_only_len
 
-    print('Same proteins in both files: ', same_len)
-    print('Proteins in GeneBank only: ', gb_only_len)
-    print('Proteins in UniProt only: ', uni_only_len)
-    print('Number of Duplicates in Same proteins list: ', duplicates)
+    print('Same genes in both files: ', same_len)
+    print('Genes in first file only: ', first_only_len)
+    print('Proteins in second file only: ', second_only_len)
+    print('Number of duplicates in same proteins list: ', duplicates)
 
     return same_gene_df, first_only, second_only, duplicates
 

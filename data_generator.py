@@ -53,7 +53,7 @@ class GeneticDataGenerator:
             df_temp = df_temp.transpose()
 
             # convert locus tag from list to str
-            df_temp['locus_tag'] = df_temp['locus_tag'][0]
+            df_temp['locus_tag'] = df_temp['locus_tag'].str[0]
 
             # concat main and temp.
             _df = pd.concat([main_df, df_temp], axis=1)
