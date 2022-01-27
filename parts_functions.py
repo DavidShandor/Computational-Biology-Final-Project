@@ -5,10 +5,12 @@ import pandas as pd
 from Bio.Seq import translate, reverse_complement
 from typing import NamedTuple
 import matplotlib.pyplot as plt
-from genetic_data_file import Hidrophobic
+from Bio.codonalign.codonseq import CodonSeq, cal_dn_ds
+from genetic_data_file import Hidrophobic, bac_gencode, Nucleotides
 from matplotlib.patches import ConnectionPatch
 from data_generator import GeneticDataGenerator
 from Bio.Data.CodonTable import TranslationError
+# from Bio.SeqUtils import
 
 
 def get_all_genes_type_and_amount(df: pd.DataFrame,
@@ -349,19 +351,19 @@ def create_csv_file(self,
 #     return feature_prot, features_prot_names, gb_null_counter, total_gb_prot
 
 
-def compare_files_data(gb_df: pd.DataFrame,
-                       uni_df: pd.DataFrame) -> tuple[list: pd.DataFrame]:
+def compare_files_data(first_df: pd.DataFrame,
+                       second_df: pd.DataFrame) -> tuple[list: pd.DataFrame]:
     # same protein in both
-    same_prot = gb_df[gb_df['locus_tag'] == uni_df['locus']]
+    same_prot = first_df[first_df['locus_tag'] == second_df['locus']]
     # protein exist only in genebank file
-    gb_only = gb_df[gb_df['locus_tag'] != uni_df['locus']]
+    gb_only = first_df[first_df['locus_tag'] != second_df['locus']]
     # protein exist only in UniPortKB file
-    uni_only = uni_df[uni_df['locus'] != gb_df['lucos_tag']]
+    uni_only = second_df[second_df['locus'] != first_df['lucos_tag']]
 
     same_len = len(same_prot.index)
     gb_only_len = len(gb_only.index)
     uni_only_len = len(uni_only.index)
-    same_dup = len(gb_df.index) - same_len - gb_only_len
+    same_dup = len(first_df.index) - same_len - gb_only_len
     print('Same proteins in both files: ', same_len)
     print('Proteins in GeneBank only: ', gb_only_len)
     print('Proteins in UniProt only: ', uni_only_len)
@@ -512,9 +514,6 @@ def create_transmembrane_df(df: pd.DataFrame):
     return trans_df
 
 
-
-
-
 def calc_gf_in_uni(df: pd.DataFrame,
                    new_col: str,
                    col: str,
@@ -526,3 +525,42 @@ def calc_gf_in_uni(df: pd.DataFrame,
 
     return df, max(b_gc), min(b_gc), np.median(b_gc), np.average(b_gc)
 
+
+def count_mutation_by_type(_dict: dict = bac_gencode,
+                           nuc: list = Nucleotides) -> dict:
+
+    gen_dict = {}
+    for key, value in _dict.items():
+        synon = 0
+        for codon in nuc:
+            for position in range(3):
+                if key[position] == codon:
+                    continue
+                else:
+                    temp = list(key)
+                    temp[position] = codon
+                    temp = "".join(temp)
+                    if value == _dict[temp]:
+                        synon += 1
+        gen_dict[key] = synon
+    return gen_dict
+
+
+def calc_selection(seq1: str,
+                   seq2: str) -> tuple[list: int, str]:
+    limit = 0.95
+    seq1 = CodonSeq(seq1)
+    seq2 = CodonSeq(seq2)
+    dn, ds = cal_dn_ds(seq1, seq2)
+    dn_ds_ratio = float(dn / ds)
+    select = 'positive' if dn_ds_ratio >= 1 else 'neutral' if limit < dn_ds_ratio < 1 else 'negative'
+    print("dN:%0.3f " % dn)
+    print("dS:%0.3f " % ds)
+    print("dN/dS:%0.3f " % dn_ds_ratio)
+    print(f'The selection is: {select}')
+
+    return dn, ds, dn_ds_ratio, select
+
+
+calc_selection('atggtgctcagcgacgcagaatggcagttggtgctgaacatctgggcgaaggtggaagct',
+               'atggggctcagcgacggggaatggcagttggtgctgaatgcctgggggaaggtggaggct')

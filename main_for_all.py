@@ -14,11 +14,11 @@ if __name__ == '__main__':
     #       'misc_feature': 89, 'tRNA': 86, 'rRNA': 30,
     #       'ncRNA': 2, 'source': 1}
 
-    print('Question 1')
-
-    gb_file = 'BS168.gb'
-    part_a = GeneticDataGenerator(genebank_file=gb_file,
-                                  answers_file='Answers part A')
+    # print('Question 1')
+    #
+    # gb_file = 'BS168.gb'
+    # part_a = GeneticDataGenerator(genebank_file=gb_file,
+    #                               answers_file='Answers part A')
 
     # print(part_a.gb_df.index)
     # func.consistent_checks_data_file(part_a.gb_df)
@@ -81,56 +81,33 @@ if __name__ == '__main__':
     # #        'Length', 'Transmembrane', 'Sequence', 'name', 'locus'],
     # #       dtype='object')
     #
-    unifile = 'uniprot_file.xlsx'
-    part_b = GeneticDataGenerator(unifile=unifile, answers_file='Answer part B')
+    # unifile = 'uniprot_file.xlsx'
+    # part_b = GeneticDataGenerator(unifile=unifile, answers_file='Answer part B')
     # # part_b.init_data_()
     # part_b.uni_df.rename({'Gene names  (primary )': 'name',
     #                       'Gene names  (ordered locus )': 'locus'}, axis=1, inplace=True)
     #
     # # print(part_b.uni_df.columns)
     # print('Question 1\n')
-    same_prot_df, gb_only_df, uni_only_df = func.compare_files_data(gb_df=part_a.gb_df, uni_df=part_b.uni_df)
+    # same_prot_df, gb_only_df, uni_only_df = func.compare_files_data(gb_df=part_a.gb_df, uni_df=part_b.uni_df)
     #
     # print('Question 2\n')
     # trans_df = func.create_transmembrane_df(part_b.uni_df)
     #
     # trans_len = parts_functions.trans_len
     # hidro_prec = parts_functions.hidro_prec
-    #
+    """
+    The internal environment of the structure is Hydrophobic, 
+    and the proteins in the Trans-membranous move through this structure
+    and hence the expectation that the sequences 
+    that create these proteins will be Hydrophobic or will have a high percentage of  
+    hydrophobic amino acids .This assumption is similar to the results we received in the histogram
+    """
     # trans_len_stats = parts_functions.calc_list_stats(trans_len)
     # print('Transmembrane Sequences Length Stats: \n', trans_len_stats)
     # hidro_prec_stat = parts_functions.calc_list_stats(hidro_prec)
     # print('Transmembrane Sequences Hidrophobic Stats: \n', hidro_prec_stat)
-    # # # סביבתה הפנימית
-    # # # של
-    # # # הממבנה
-    # # # היא
-    # # # הידרופובית, והחלבונים
-    # # # הטרנס - ממברנליים
-    # # # עוברים
-    # # # דרכה
-    # # # ולכן
-    # # # הצפייה
-    # # # היא
-    # # # שהרצפים
-    # # # המרכיבים
-    # # # את
-    # # # החלבונים
-    # # # הללו
-    # # # יהיו
-    # # # הידרופוביים
-    # # # או
-    # # # בעלי
-    # # # אחוז
-    # # # גבוה
-    # # # של
-    # # # חומצות
-    # # # אמינו
-    # # # הידרופוביות.זה
-    # # # מתאים
-    # # # לתוצאה
-    # # # שרואים
-    # # # בהיסטוגרמה
+
     # titles = ['Transmembrane Sequences Length Distribution', 'Transmembrane Sequences Hidro-acids% Distribution']
     # val = [trans_len, hidro_prec]
     # x_l = ['Transmembrane Sequences Length', 'Hidrophobic(%)']
@@ -145,4 +122,20 @@ if __name__ == '__main__':
     #
     # print('Question 3:\n')
 
-    # print('#################### PART C ############################')
+    print('#################### PART C ############################')
+    print('Question 1\n')
+    january = 'CoronaJanuary2022.gb'
+    july = 'CoronaJuly2020.gb'
+
+    january = GeneticDataGenerator(genebank_file=january, answers_file='january')
+    july = GeneticDataGenerator(genebank_file=july, answers_file='july')
+
+    covid_synon = func.count_mutation_by_type()
+    # print(covid_synon)
+
+    print('Question 2\n')
+    same_gene_df, first_only_df, second_only_df = func.compare_files_data(first_df=january.gb_df,
+                                                                          second_df=july.gb_df)
+
+
+
