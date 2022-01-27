@@ -21,7 +21,7 @@ if __name__ == '__main__':
                                   answers_file='Answers part A')
 
     # print(part_a.gb_df.index)
-    func.consistent_checks_data_file(part_a.gb_df)
+    # func.consistent_checks_data_file(part_a.gb_df)
     #
     # all_gene_dict = func.get_all_genes_type_and_amount(part_a.gb_df)
     # print(f'All genes and their count in file: {all_gene_dict}')
@@ -81,15 +81,15 @@ if __name__ == '__main__':
     # #        'Length', 'Transmembrane', 'Sequence', 'name', 'locus'],
     # #       dtype='object')
     #
-    # unifile = 'uniprot-filtered-organism__Bacillus+subtilis+(strain+168)+[224308]%2--.xlsx'
-    # part_b = GeneticDataGenerator(unifile=unifile, answers_file='Answer part B')
+    unifile = 'uniprot_file.xlsx'
+    part_b = GeneticDataGenerator(unifile=unifile, answers_file='Answer part B')
     # # part_b.init_data_()
     # part_b.uni_df.rename({'Gene names  (primary )': 'name',
     #                       'Gene names  (ordered locus )': 'locus'}, axis=1, inplace=True)
     #
     # # print(part_b.uni_df.columns)
     # print('Question 1\n')
-    # same_prot_df, gb_only_df, uni_only_df = func.compare_files_data(gb_df=part_a.gb_df, uni_df=part_b.uni_df)
+    same_prot_df, gb_only_df, uni_only_df = func.compare_files_data(gb_df=part_a.gb_df, uni_df=part_b.uni_df)
     #
     # print('Question 2\n')
     # trans_df = func.create_transmembrane_df(part_b.uni_df)
