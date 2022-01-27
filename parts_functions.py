@@ -1,4 +1,3 @@
-import Bio
 import regex as re
 import numpy as np
 import pandas as pd
@@ -10,7 +9,6 @@ from genetic_data_file import Hidrophobic, bac_gencode, Nucleotides
 from matplotlib.patches import ConnectionPatch
 from data_generator import GeneticDataGenerator
 from Bio.Data.CodonTable import TranslationError
-# from Bio.SeqUtils import
 
 
 def get_all_genes_type_and_amount(df: pd.DataFrame,
@@ -352,24 +350,36 @@ def create_csv_file(self,
 
 
 def compare_files_data(first_df: pd.DataFrame,
-                       second_df: pd.DataFrame) -> tuple[list: pd.DataFrame]:
-    # same protein in both
-    same_prot = first_df[first_df['locus_tag'] == second_df['locus']]
-    # protein exist only in genebank file
-    gb_only = first_df[first_df['locus_tag'] != second_df['locus']]
-    # protein exist only in UniPortKB file
-    uni_only = second_df[second_df['locus'] != first_df['lucos_tag']]
+                       second_df: pd.DataFrame,
+                       col1: str,
+                       col2: str) -> tuple[list: pd.DataFrame, int]:
 
-    same_len = len(same_prot.index)
-    gb_only_len = len(gb_only.index)
-    uni_only_len = len(uni_only.index)
-    same_dup = len(first_df.index) - same_len - gb_only_len
+    first_s = set(first_df[col1])
+    second_s = set(second_df[col2])
+
+    # same protein in both
+    same_gene_list = first_s.intersection(second_s)
+    same_gene_df = first_df[first_df[col1].isin(same_gene_list)]
+
+    # protein exist only in genebank file
+    first_only_list = first_s.difference(second_s)
+    first_only = first_df[first_df[col1].isin(first_only_list)]
+
+    # protein exist only in UniPortKB file
+    second_only_list = second_s.difference(first_s)
+    second_only = second_df[second_df[col2].isin(second_only_list)]
+
+    same_len = len(same_gene_list)
+    gb_only_len = len(first_only_list)
+    uni_only_len = len(second_only_list)
+    duplicates = len(first_df.index) - same_len - gb_only_len
+
     print('Same proteins in both files: ', same_len)
     print('Proteins in GeneBank only: ', gb_only_len)
     print('Proteins in UniProt only: ', uni_only_len)
-    print('Number of Duplicates in Same proteins list: ', same_dup)
+    print('Number of Duplicates in Same proteins list: ', duplicates)
 
-    return same_prot, gb_only, uni_only
+    return same_gene_df, first_only, second_only, duplicates
 
 
 # def get_same_diff_from_gb(features: list,
@@ -562,5 +572,5 @@ def calc_selection(seq1: str,
     return dn, ds, dn_ds_ratio, select
 
 
-calc_selection('atggtgctcagcgacgcagaatggcagttggtgctgaacatctgggcgaaggtggaagct',
-               'atggggctcagcgacggggaatggcagttggtgctgaatgcctgggggaaggtggaggct')
+# calc_selection('atggtgctcagcgacgcagaatggcagttggtgctgaacatctgggcgaaggtggaagct',
+#                'atggggctcagcgacggggaatggcagttggtgctgaatgcctgggggaaggtggaggct')

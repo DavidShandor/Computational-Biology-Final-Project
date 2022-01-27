@@ -1,6 +1,8 @@
-import parts_functions
 from data_generator import GeneticDataGenerator
 import parts_functions as func
+
+import warnings
+warnings.simplefilter('ignore')
 
 
 if __name__ == '__main__':
@@ -16,9 +18,12 @@ if __name__ == '__main__':
 
     # print('Question 1')
     #
-    # gb_file = 'BS168.gb'
-    # part_a = GeneticDataGenerator(genebank_file=gb_file,
-    #                               answers_file='Answers part A')
+    gb_file = 'BS168.gb'
+    cols = ['organism', 'mol_type', 'strain', 'sub_species', 'type_material',
+            'pseudo', 'ncRNA_class', 'ribosomal_slippage', 'inference', 'EC_number']
+    part_a = GeneticDataGenerator(genebank_file=gb_file,
+                                  answers_file='Answers part A',
+                                  cols_to_drop=cols)
 
     # print(part_a.gb_df.index)
     # func.consistent_checks_data_file(part_a.gb_df)
@@ -81,15 +86,18 @@ if __name__ == '__main__':
     # #        'Length', 'Transmembrane', 'Sequence', 'name', 'locus'],
     # #       dtype='object')
     #
-    # unifile = 'uniprot_file.xlsx'
-    # part_b = GeneticDataGenerator(unifile=unifile, answers_file='Answer part B')
-    # # part_b.init_data_()
-    # part_b.uni_df.rename({'Gene names  (primary )': 'name',
-    #                       'Gene names  (ordered locus )': 'locus'}, axis=1, inplace=True)
+    unifile = 'uniprot_file.xlsx'
+    part_b = GeneticDataGenerator(unifile=unifile, answers_file='Answer part B')
+
+    part_b.uni_df.rename({'Gene names  (primary )': 'name',
+                          'Gene names  (ordered locus )': 'locus'}, axis=1, inplace=True)
     #
-    # # print(part_b.uni_df.columns)
-    # print('Question 1\n')
-    # same_prot_df, gb_only_df, uni_only_df = func.compare_files_data(gb_df=part_a.gb_df, uni_df=part_b.uni_df)
+    print(part_b.uni_df.columns)
+    print('Question 1\n')
+    same_prot_df, gb_only_df, uni_only_df, duplicates = func.compare_files_data(first_df=part_a.gb_df,
+                                                                                second_df=part_b.uni_df,
+                                                                                col1='locus_tag',
+                                                                                col2='locus')
     #
     # print('Question 2\n')
     # trans_df = func.create_transmembrane_df(part_b.uni_df)
@@ -122,20 +130,34 @@ if __name__ == '__main__':
     #
     # print('Question 3:\n')
 
-    print('#################### PART C ############################')
-    print('Question 1\n')
-    january = 'CoronaJanuary2022.gb'
-    july = 'CoronaJuly2020.gb'
+    # print('#################### PART C ############################')
+    # print('Question 1\n')
+    # january = 'CoronaJanuary2022.gb'
+    # july = 'CoronaJuly2020.gb'
+    #
+    # # list of cols to drop
+    # drop_jan = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
+    #             'country', 'collection_date', 'ribosomal_slippage', 'codon_start']
+    # drop_jul = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
+    #             'country', 'collection_date', 'ribosomal_slippage', 'codon_start',
+    #             'inference', 'function', 'gene_synonym']
+    #
+    # january = GeneticDataGenerator(genebank_file=january, answers_file='january',
+    #                                cols_to_drop=drop_jan)
+    # july = GeneticDataGenerator(genebank_file=july, answers_file='july',
+    #                             cols_to_drop=drop_jul)
 
-    january = GeneticDataGenerator(genebank_file=january, answers_file='january')
-    july = GeneticDataGenerator(genebank_file=july, answers_file='july')
+    # print(january.gb_df['gene'].value_counts())
+    # print(july.gb_df['gene'].value_counts())
 
-    covid_synon = func.count_mutation_by_type()
+    # covid_synon = func.count_mutation_by_type()
     # print(covid_synon)
 
-    print('Question 2\n')
-    same_gene_df, first_only_df, second_only_df = func.compare_files_data(first_df=january.gb_df,
-                                                                          second_df=july.gb_df)
-
+    # print('Question 2\n')
+    # same_gene_df, first_only_df, second_only_df = func.compare_files_data(first_df=january.gb_df,
+    #                                                                       second_df=july.gb_df,
+    #                                                                       col1='gene', col2='gene')
+    #
+    # print(same_gene_df.head(), first_only_df.head(), second_only_df.head())
 
 
