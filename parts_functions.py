@@ -1,14 +1,19 @@
-import regex as re
+from __future__ import annotations
+
+from typing import NamedTuple
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from Bio.Seq import translate, reverse_complement
-from typing import NamedTuple
-import matplotlib.pyplot as plt
-from Bio.codonalign.codonseq import CodonSeq, cal_dn_ds
-from genetic_data_file import Hidrophobic, bac_gencode, Nucleotides
-from matplotlib.patches import ConnectionPatch
-from data_generator import GeneticDataGenerator
+import regex as re
 from Bio.Data.CodonTable import TranslationError
+from Bio.Seq import translate, reverse_complement
+from Bio.codonalign.codonseq import CodonSeq, cal_dn_ds
+from matplotlib.patches import ConnectionPatch
+
+from automated_answer_file import AutomatedAnswerFile
+from data_generator import GeneticDataGenerator
+from genetic_data_file import Hidrophobic, bac_gencode, Nucleotides
 
 trans_len = []
 hidro_prec = []
@@ -17,12 +22,18 @@ hidro_prec = []
 #  NOTE: for each object we create there is another file (but maybe you can concat them?)
 
 def get_all_genes_type_and_amount(df: pd.DataFrame,
-                                  col: str = 'type') -> dict:
+                                  col: str = 'type',
+                                  automated_answer_file: AutomatedAnswerFile = None) -> dict:
     """
     Count genes by type (CDS/rRNA/misc_RNA etc...)
     :return: a dictionary with the key gene type and the value its amount
     ** 73612 line in gb file (misc_feature number 46) there is a gene that has CDS and misc_features
     """
+    automated_answer_file.write_answer_from_dict(answer_dict=dict(df[col].value_counts()),
+                                                 section='1',
+                                                 answer_description='All genes types and their count-',
+                                                 question_number='1',
+                                                 unwanted_fields_in_dict=['source'])
     return dict(df[col].value_counts())
 
 
@@ -61,8 +72,8 @@ def calc_list_stats(_s: list,
     }
 
 
-def characterization_of_gene_lengths(_df: pd.DataFrame) -> \
-        tuple[pd.DataFrame, list: dict, list: list]:
+def characterization_of_gene_lengths(_df: pd.DataFrame,
+                                     automated_answer_file: AutomatedAnswerFile = None) -> tuple[pd.DataFrame, list: dict, list: list]:
     """
     Counts the length and amount of protein/non-protein genes
     Find the maximum, minimum and average length of protein/non-protein genes
@@ -80,18 +91,17 @@ def characterization_of_gene_lengths(_df: pd.DataFrame) -> \
     protein_stats = calc_df_stats(df_protein['sequence length'], 'Proteins info')
     non_protein_stats = calc_df_stats(df_non_protein['sequence length'], 'non-Proteins info')
 
-    # with open(self.answers_file, 'a') as answersFile:
-    #     answersFile.write('\n2.Statistics for proteins/non proteins\n')
-    #     answersFile.write('Proteins -\n')
-    #     for key, value in protein_info.items():
-    #         answersFile.write(f'\t"{key}" : "{value}"\n')
-    #     answersFile.write('Non proteins -\n')
-    #     for key, value in protein_info.items():
-    #         answersFile.write(f'\t"{key}" : "{value}"\n')
-    #     answersFile.write('** histograms for all genes/protein/non protein will be shown on screen\n')
+    automated_answer_file.write_answer_from_dict(answer_dict=protein_stats,
+                                                 section='2',
+                                                 answer_description='Statistics for protein and non proteins-',
+                                                 data_description='Proteins info:',
+                                                 unwanted_fields_in_dict=['description', 'total_length'])
+    automated_answer_file.write_answer_from_dict(answer_dict=non_protein_stats,
+                                                 data_description='Non proteins info:',
+                                                 unwanted_fields_in_dict=['description', 'total_length'],
+                                                 more_info='** histograms for all genes/protein/non protein will be shown on screen')
 
-    return df_protein, (protein_stats, non_protein_stats),\
-        (list(df_protein['sequence length']), list(df_non_protein['sequence length']), list(_df['sequence length']))
+    return df_protein, (protein_stats, non_protein_stats), (list(df_protein['sequence length']), list(df_non_protein['sequence length']), list(_df['sequence length']))
 
 
 def build_histograms(hist_title: str,
@@ -138,7 +148,8 @@ def count_occ_in_seq(seq, occ):
 
 
 def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
-                                     df_prot: pd.DataFrame) -> tuple[list:pd.DataFrame, list: float]:
+                                     df_prot: pd.DataFrame,
+                                     automated_answer_file: AutomatedAnswerFile = None) -> tuple[list:pd.DataFrame, list: float]:
     """
 
     @param obj:
@@ -155,6 +166,21 @@ def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
     largest_5 = df_prot.nlargest(5, 'gene gc%')
     smallest_5 = df_prot.nsmallest(5, 'gene gc%')
 
+    answer_for_part_three_a = f'GC percentage in the whole genome: {full_gc_percent}'
+    answer_for_part_three_b = f'GC average percentage in the proteins: {avg_prot_gc_percent}'
+
+    print(largest_5.columns)
+    automated_answer_file.write_answer_from_string(answer=answer_for_part_three_a,
+                                                   section='3',
+                                                   answer_description='Calculation of GC percentage in genes-')
+    automated_answer_file.write_answer_from_string(answer=answer_for_part_three_b)
+    automated_answer_file.write_answer_from_dataframe(answer_dataframe=largest_5,
+                                                      data_description='Five highest GC percentage genes:',
+                                                      specific_wanted_columns_in_dataframe=['gene', 'locus_tag', 'start', 'end', 'strand', 'gene gc%'])
+    automated_answer_file.write_answer_from_dataframe(answer_dataframe=smallest_5,
+                                                      data_description='Five lowest GC percentage genes:',
+                                                      specific_wanted_columns_in_dataframe=['gene', 'locus_tag', 'start', 'end', 'strand', 'gene gc%'],
+                                                      more_info='** histogram for the GC percentage in proteins will be shown on screen')
     return (df_prot, largest_5, smallest_5), (full_gc_percent, avg_prot_gc_percent)
 
     # """
@@ -244,7 +270,8 @@ def extract_data_from_list_of_objects_to_list_of_lists(list_with_data: list) -> 
     return all_data
 
 
-def consistent_checks_data_file(df: pd.DataFrame) -> list:
+def consistent_checks_data_file(df: pd.DataFrame,
+                                automated_answer_file: AutomatedAnswerFile = None) -> list:
     """
     checks the data consistent in the data file -
     1. checks if all the genes that are translated to proteins length is a double of three times
@@ -279,8 +306,28 @@ def consistent_checks_data_file(df: pd.DataFrame) -> list:
             else:
                 pass
 
-    print(data_file_errors)
+    if data_file_errors:
+        for index, data in enumerate(data_file_errors):
+            data_to_dict = {
+                'gene_name': data[0],
+                'start': data[1],
+                'end': data[2],
+                'strand': data[3],
+                'error': data[4]
+            }
+            if index == 0:
+                automated_answer_file.write_answer_from_dict(answer_dict=data_to_dict,
+                                                             section='4',
+                                                             answer_description='Errors found in data file (gene bank file)-',
+                                                             data_description=f'Error number {index+1}:')
+            else:
+                automated_answer_file.write_answer_from_dict(answer_dict=data_to_dict,
+                                                             data_description=f'Error number {index+1}:')
+        automated_answer_file.write_more_info('** gene_exceptions.csv file with the errors was created')
 
+        create_csv_file(columns=['gene_name', 'start', 'end', 'strand', 'error'],
+                        data=data_file_errors,
+                        csv_file_name='gene_exceptions.csv')
 #     with open(self.answers_file, 'a') as answersFile:
 #         answersFile.write('\n4.Consistent check in the data file\n')
 #         answersFile.write('Data file errors -\n')
@@ -297,7 +344,7 @@ def consistent_checks_data_file(df: pd.DataFrame) -> list:
 
 def create_csv_file(columns: list[str],
                     data: list[DataFileErrorGenes],
-                    csv_file_name: str = None):
+                    csv_file_name: str):
     """
     create a csv file
     :param columns: columns names as list

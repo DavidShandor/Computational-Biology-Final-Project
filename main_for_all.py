@@ -2,12 +2,13 @@ import pandas as pd
 
 from data_generator import GeneticDataGenerator
 import parts_functions as func
-
+from automated_answer_file import AutomatedAnswerFile
 import warnings
 warnings.simplefilter('ignore')
 
 
 if __name__ == '__main__':
+    automated_answer_file = AutomatedAnswerFile('automated_answer_file.txt')
     # TODO: doc all the files: main, func, data generator, etc., and write answers into files (check in the file order).
     print('*--------------- Part A ---------------*')
 
@@ -30,11 +31,13 @@ if __name__ == '__main__':
                                   answers_file='Answers part A',
                                   cols_to_drop=cols)
 
-    all_gene_dict = func.get_all_genes_type_and_amount(part_a.gb_df)
+    all_gene_dict = func.get_all_genes_type_and_amount(df=part_a.gb_df,
+                                                       automated_answer_file=automated_answer_file)
     print(f'All genes and their count in file: {all_gene_dict}')
 
     print('\nQuestion 2')
-    df_proteins, stats, gen_len = func.characterization_of_gene_lengths(part_a.gb_df)
+    df_proteins, stats, gen_len = func.characterization_of_gene_lengths(_df=part_a.gb_df,
+                                                                        automated_answer_file=automated_answer_file)
 
     print(f'Statistics of each group:')
     print(f'proteins: {stats[0]}\n'
@@ -58,7 +61,8 @@ if __name__ == '__main__':
 
     print('\nQuestion 3')
 
-    df_prot, gc_percent = func.calculate_gc_percentage_in_genes(part_a, df_proteins)
+    df_prot, gc_percent = func.calculate_gc_percentage_in_genes(part_a, df_proteins,
+                                                                automated_answer_file=automated_answer_file)
 
     print(f'GC percentage of the whole genome: {gc_percent[0]}')
     print(f'GC average percentage in the proteins: {gc_percent[1]}')
@@ -76,7 +80,8 @@ if __name__ == '__main__':
     print(f'5 gene with the smallest GC%:\n\t {df_prot[2].loc[:, col_to_5]}')
 
     print('\nQuestion 4')
-    data_file_errors = func.consistent_checks_data_file(part_a.gb_df)
+    data_file_errors = func.consistent_checks_data_file(part_a.gb_df,
+                                                        automated_answer_file=automated_answer_file)
     print(f'Data file errors: {data_file_errors}')
 
     # TODO: make this function works.
