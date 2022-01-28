@@ -10,6 +10,11 @@ from matplotlib.patches import ConnectionPatch
 from data_generator import GeneticDataGenerator
 from Bio.Data.CodonTable import TranslationError
 
+trans_len = []
+hidro_prec = []
+
+# TODO: Document all and write answers into files.
+#  NOTE: for each object we create there is another file (but maybe you can concat them?)
 
 def get_all_genes_type_and_amount(df: pd.DataFrame,
                                   col: str = 'type') -> dict:
@@ -21,8 +26,16 @@ def get_all_genes_type_and_amount(df: pd.DataFrame,
     return dict(df[col].value_counts())
 
 
-def calc_df_stats(_s: pd.Series) -> dict:
+def calc_df_stats(_s: pd.Series,
+                  _description: str) -> dict:
+    """
+    @param _description:
+    @param _s:
+    @return:
+    """
+
     return{
+        'description': _description,
         'total_length': _s.sum(),
         'max_length': _s.max(),
         'min_length': _s.min(),
@@ -31,8 +44,15 @@ def calc_df_stats(_s: pd.Series) -> dict:
     }
 
 
-def calc_list_stats(_s: list) -> dict:
+def calc_list_stats(_s: list,
+                    _description: str) -> dict:
+    """
+    @param _description:
+    @param _s:
+    @return:
+    """
     return{
+        'description': _description,
         'total_length': sum(_s),
         'max_length': max(_s),
         'min_length': min(_s),
@@ -41,8 +61,8 @@ def calc_list_stats(_s: list) -> dict:
     }
 
 
-def characterization_of_gene_lengths(obj: GeneticDataGenerator) -> \
-        tuple[pd.DataFrame, dict, dict, list, list, list]:
+def characterization_of_gene_lengths(_df: pd.DataFrame) -> \
+        tuple[pd.DataFrame, list: dict, list: list]:
     """
     Counts the length and amount of protein/non-protein genes
     Find the maximum, minimum and average length of protein/non-protein genes
@@ -51,14 +71,14 @@ def characterization_of_gene_lengths(obj: GeneticDataGenerator) -> \
             3 lists with the information about the lengths of the protein/non-protein/all genes
     """
     # calc the length of the gene sequence
-    obj.gb_df['sequence length'] = obj.gb_df['end'] - obj.gb_df['start']
+    _df['sequence length'] = _df['end'] - _df['start']
 
     # divide genes to proteins and non-proteins
-    df_protein = obj.gb_df[obj.gb_df['type'] == 'CDS']
-    df_non_protein = obj.gb_df[~obj.gb_df['type'].isin(['CDS', 'gene', 'source'])]
+    df_protein = _df[_df['type'] == 'CDS']
+    df_non_protein = _df[~_df['type'].isin(['CDS', 'gene', 'source'])]
 
-    protein_stats = calc_df_stats(df_protein['sequence length'])
-    non_protein_stats = calc_df_stats(df_non_protein['sequence length'])
+    protein_stats = calc_df_stats(df_protein['sequence length'], 'Proteins info')
+    non_protein_stats = calc_df_stats(df_non_protein['sequence length'], 'non-Proteins info')
 
     # with open(self.answers_file, 'a') as answersFile:
     #     answersFile.write('\n2.Statistics for proteins/non proteins\n')
@@ -70,10 +90,8 @@ def characterization_of_gene_lengths(obj: GeneticDataGenerator) -> \
     #         answersFile.write(f'\t"{key}" : "{value}"\n')
     #     answersFile.write('** histograms for all genes/protein/non protein will be shown on screen\n')
 
-    return df_protein, protein_stats, non_protein_stats, \
-        list(df_protein['sequence length']), \
-        list(df_non_protein['sequence length']),\
-        list(obj.gb_df['sequence length'])
+    return df_protein, (protein_stats, non_protein_stats),\
+        (list(df_protein['sequence length']), list(df_non_protein['sequence length']), list(_df['sequence length']))
 
 
 def build_histograms(hist_title: str,
@@ -121,6 +139,12 @@ def count_occ_in_seq(seq, occ):
 
 def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
                                      df_prot: pd.DataFrame) -> tuple[list:pd.DataFrame, list: float]:
+    """
+
+    @param obj:
+    @param df_prot:
+    @return:
+    """
     gc = ['G', 'C']
     full_gc_percent = count_occ_in_seq(obj.sequence.upper(), gc)
     df_prot = df_prot.assign(gc=df_prot.apply(lambda x: count_occ_in_seq(x.sequence, gc), axis=1))
@@ -148,8 +172,8 @@ def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
     #         5. 5 lowest GC percentage genes as list
     # """
 
-
     # # TODO add all_genes_data to description and add GeneInfo class the coverted gene (coverts to protein/ ...)
+## TODO: I didn't write this todos...
 
 #     with open(self.answers_file, 'a') as answersFile:
 #         answersFile.write('\n3.Calculation of GC percentage in genes\n')
@@ -171,8 +195,8 @@ def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
 #             answersFile.write(f'\t Strand: {gene[4]}\n')
 #         answersFile.write('** histogram for the GC percentage in proteins will be shown on screen\n')
 
-#
-# TODO : --------------------------  START HERE with Eyal --------------------------
+
+
 class DataFileErrorGenes(NamedTuple):
     gene_name: str
     start: int
@@ -200,8 +224,6 @@ def convert_to_protein(gene_seq: str,
                                     cds=True))
     except TranslationError as error:
         return True, str(error)
-
-
 
 
 def extract_data_from_list_of_objects_to_list_of_lists(list_with_data: list) -> list[list]:
@@ -232,15 +254,6 @@ def consistent_checks_data_file(df: pd.DataFrame) -> list:
     """
 
     data_file_errors = []
-
-    # check genes numbers, e.g. if there are 4536 genes (spoiler: NOT) hahaha
-    # genes_number = get_all_genes_type_and_amount(df)
-    #
-    # if genes_number['gene'] != (sum(genes_number.values()) - genes_number['gene'] - 1):
-    #     gen_id = df.locus_tag.mode()
-    #     # df_gene = df[df['locus_tag'] == gen_id[0]]
-    #     # print(df_gene.head)
-    #     print(gen_id)
 
     for ind in range(len(df.index)):
         if df.loc[ind, 'type'] == 'gene' and df.loc[ind+1, 'type'] == 'CDS':
@@ -282,8 +295,7 @@ def consistent_checks_data_file(df: pd.DataFrame) -> list:
     return data_file_errors
 
 
-def create_csv_file(self,
-                    columns: list[str],
+def create_csv_file(columns: list[str],
                     data: list[DataFileErrorGenes],
                     csv_file_name: str = None):
     """
@@ -298,61 +310,41 @@ def create_csv_file(self,
     df.to_csv(csv_file_name, index=False)
 
 
-# def uni_dataframe_details(df: pd.DataFrame,
-#                           col: str):
-#     """
-#     Gathered information about the DF base on the request column
-#     @param df:bla
-#     @param col:bla
-#     @return:asd
-#     """
-#
-#     null_count = df[col].isna().sum()
-#     name_df = df[df[col].notna()]
-#     name_series = name_df[col]
-#     name_unique = name_series.nunique()
-#     name_count = len(list(name_series))
-#     name_series.drop_duplicates(inplace=True)
-#     total_gb = name_count + null_count
-#     duplicate_names = name_count - name_unique
-#
-#     print('Total genes in UniProtKB file: ', total_gb)
-#     print('Number of named genes: ', name_count)
-#     print('Number of genes without name: ', null_count)
-#     print('Number of unique genes name: ', name_unique)
-#     print('Number of Duplicates genes by name: ', duplicate_names)
-#
-#     return name_df, list(name_series), name_unique, name_count, total_gb, duplicate_names
+def fix_gb_uni_diff(gb_df: pd.DataFrame,
+                    uni_df: pd.DataFrame,
+                    col1: str, col2: str,
+                    from_c: str, to_c: str) -> tuple[list: pd.DataFrame]:
+    """
+    Matches the different sequence identifiers and creates uniform identification.
+    (GB Locus format: BSU_###, Uni: BSU###, need to remove "_")
+    @param gb_df:
+    @param uni_df:
+    @param col1:
+    @param col2:
+    @param from_c:
+    @param to_c:
+    @return:
+    """
 
+    def adjust_string(value) -> str:
+        """
 
-# def features_analysis(features: list):
-#     """Analyze the features of the gene, mainly by genes name"""
-#
-#     features_prot_names = []
-#     feature_prot = []
-#     gb_null_counter = 0
-#
-#     for feature in features:
-#         if feature.type == 'CDS':
-#             feature_prot.append(feature)
-#             if feature.qualifiers.get('gene') is not None:
-#                 features_prot_names.append(feature.qualifiers.get('gene')[0])
-#             else:
-#                 gb_null_counter += 1
-#
-#     total_gb_prot = gb_null_counter + len(features_prot_names)
-#
-#     print('Total proteins genes in GeneBank file: ', total_gb_prot)
-#     print('Number of named proteins in GB: ', len(features_prot_names))
-#     print('Number of unnamed proteins in GB: ', gb_null_counter)
-#
-#     return feature_prot, features_prot_names, gb_null_counter, total_gb_prot
+        @param value: the string to fix
+        @return: fixed string after remove irrelevant chars
+        """
+        if type(value) != str:
+            return str(value).replace(from_c, to_c)
+        return value.replace(from_c, to_c)
+
+    gb_df[col1] = gb_df[col1].apply(lambda x: adjust_string(x))
+    uni_df[col2] = uni_df[col2].apply(lambda x: adjust_string(x))
+
+    return gb_df, uni_df
 
 
 def compare_files_data(first_df: pd.DataFrame,
                        second_df: pd.DataFrame,
-                       col1: str,
-                       col2: str) -> tuple[list: pd.DataFrame, int]:
+                       col1: str, col2: str) -> tuple[list: pd.DataFrame, list: int]:
 
     first_s = set(first_df[col1])
     second_s = set(second_df[col2])
@@ -360,7 +352,7 @@ def compare_files_data(first_df: pd.DataFrame,
     # same protein in both
     same_gene_list = first_s.intersection(second_s)
     same_gene_df = first_df[first_df[col1].isin(same_gene_list)]
-
+    print(len(same_gene_df))
     # protein exist only in genebank file
     first_only_list = first_s.difference(second_s)
     first_only = first_df[first_df[col1].isin(first_only_list)]
@@ -372,39 +364,17 @@ def compare_files_data(first_df: pd.DataFrame,
     same_len = len(same_gene_list)
     first_only_len = len(first_only_list)
     second_only_len = len(second_only_list)
-    duplicates = len(first_df.index) + len(second_df.index) - same_len - first_only_len - second_only_len
+    first_diff = len(first_df.index) - same_len - first_only_len
+    second_diff = len(second_df.index) - same_len - second_only_len
 
     print('Same genes in both files: ', same_len)
     print('Genes in first file only: ', first_only_len)
     print('Proteins in second file only: ', second_only_len)
-    print('Number of duplicates in same proteins list: ', duplicates)
+    print(f'First data file number of duplicates or unreviewed genes: {first_diff}\n'
+          f'Second data file number of duplicates or unreviewed genes: {second_diff}')
 
-    return same_gene_df, first_only, second_only, duplicates
-
-
-# def get_same_diff_from_gb(features: list,
-#                           same_prot: list): pass
-    # gb_same = []
-    # gb_diff = []
-    # gb_count = 0
-    # for feature in features:
-    #     if feature.type == 'CDS':
-    #         if feature.qualifiers.get('gene') is not None:
-    #             gb_count += 1
-    #             if feature.qualifiers.get('gene')[0] in same_prot:
-    #                 gb_same.append(feature)
-    #             else:
-    #                 gb_diff.append(feature)
-    #
-    # return gb_same, gb_diff, gb_count
-
-
-# def create_diff_dataframe(df: pd.DataFrame,
-#                           uni_only: list,
-#                           col: str):
-#     # Data frame of the differences, e.g. gene only in UniPort.
-#     df_diff = df[df[col].isin(uni_only)]
-#     return df_diff.drop_duplicates(subset=col)
+    return same_gene_df, first_only, second_only,\
+        (same_len, first_only_len, first_diff, second_only_len, second_diff)
 
 
 def make_autopct(values):
@@ -416,19 +386,20 @@ def make_autopct(values):
     return my_autopct
 
 
-def plot_gene_pie(_data, _labels, _titles, _exp, _angle, _width):
+def plot_pie(_data, _labels, _titles, _exp, _angle, _width):
     fig = plt.figure(figsize=(15, 10))
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
+
     fig.subplots_adjust(wspace=0)
 
     # large pie chart parameters
     ax1.pie(_data[0], autopct=make_autopct(_data[0]), startangle=_angle,
-            labels=_labels[0], explode=_exp, shadow=True)
+            explode=_exp[0], labels=_labels[0], shadow=True)
 
     # small pie chart parameters
     ax2.pie(_data[1], autopct=make_autopct(_data[1]), startangle=_angle, textprops={'size': 'smaller'},
-            labels=_labels[1], radius=0.5, shadow=True, explode=_exp)
+            explode=_exp[1], labels=_labels[1], radius=0.5, shadow=True)
 
     ax1.set_title(_titles[0])
     ax2.set_title(_titles[1])
@@ -459,45 +430,36 @@ def plot_gene_pie(_data, _labels, _titles, _exp, _angle, _width):
     plt.show()
 
 
-# TODO: GET THIS FUNCTION WORKS!
-# def hell_func_to_plot_graph():
-#     uni_file_count = len(prot_names)
-#     total_uni_file = uni_file_count + uni_null_count
-#     uni_file_dup = uni_file_count - count_unique
-#
-#     uni_chart = [[uni_file_count, uni_null_count], [count_unique, uni_file_dup]]
-#     labels = [['Named', 'Unnamed'], ['Unique', 'Duplicates']]
-#     titles = ['Total Genes in UniPort', 'Named Genes']
-#     explode = [0.1, 0]
-#     angle = -180 * (uni_file_count / total_uni_file)
-#     width = .2
-#
-#     plot_gene_pie(uni_chart, labels, titles, explode, angle, width)
-#
-#     # show GeneBank file details
-#
-#     total_named_prot_gb = len(features_prot)
-#     total_unprot_gb = len(features) - total_gb_prot
-#     total_gb = total_gb_prot + total_unprot_gb
-#     gb_chart = [[total_gb_prot, total_unprot_gb], [total_named_prot_gb, gb_null_counter]]
-#     labels = [['Protiens', 'Other Types'], ['Named', 'Unnamed']]
-#     titles = ['Total Genes in GeneBank', 'Protiens Genes']
-#     explode = [0.1, 0]
-#     angle = -180 * (total_gb_prot / total_gb)
-#     width = .2
-#
-#     plot_gene_pie(gb_chart, labels, titles, explode, angle, width)
-#
-#     compare_chart = [len(same_prot), len(gb_only), len(uni_only)]
-#     _labels = ['Same Protiens', 'GB Unique Protiens', 'UniProtKB Unique Protiens']
-#     plt.bar(_labels, compare_chart, color=['r', 'g', 'b'], width=0.5)
-#     plt.title('Files Comparison')
-#     plt.tight_layout()
-#     plt.show()
+def compare_graph(len_list: list):
 
+    same_len, first_only_len, first_diff, second_only_len, second_diff = len_list
 
-trans_len = []
-hidro_prec = []
+    total_first = same_len+first_only_len+first_diff
+    total_second = same_len+second_only_len+second_diff
+
+    # First file
+    labels = [['First File', 'Second File'], ['Same', 'First only']]
+    title = [['Files Comparison', 'First in-Depth'], ['Files Comparison', 'Second in-Depth']]
+    explode = [[0.1, 0], [0, 0.1]]
+    data = [[total_first, total_second], [same_len, first_only_len]]
+    angle = -90 * ((same_len+first_only_len) / total_first)
+    plot_pie(_data=data, _labels=labels, _titles=title[0],
+             _exp=explode, _angle=angle, _width=0.2)
+
+    # Second file
+    data = [[total_second, total_first], [same_len, second_only_len, second_diff]]
+    labels = [['Second File', 'First File'], ['Same', 'Second only', 'Second Duplicates or Unreviewed']]
+    explode = [[0.1, 0], [0, 0.1, 0.1]]
+    angle = -180 * ((same_len+second_only_len) / total_second)
+    plot_pie(_data=data, _labels=labels, _titles=title[1],
+             _exp=explode, _angle=angle, _width=0.2)
+
+    compare_chart = [same_len, first_only_len, second_only_len]
+    _labels = ['Same Proteins', 'GeneBank Unique Proteins', 'UniProtKB Unique Proteins']
+    plt.bar(_labels, compare_chart, color=['r', 'g', 'b'], width=0.1)
+    plt.title('Files Comparison')
+    plt.tight_layout()
+    plt.show()
 
 
 def count_hidro(seq):
@@ -524,6 +486,7 @@ def create_transmembrane_df(df: pd.DataFrame):
     return trans_df
 
 
+# TODO: I didn't found what is this function used for. Delete?
 def calc_gf_in_uni(df: pd.DataFrame,
                    new_col: str,
                    col: str,
@@ -572,5 +535,4 @@ def calc_selection(seq1: str,
     return dn, ds, dn_ds_ratio, select
 
 
-# calc_selection('atggtgctcagcgacgcagaatggcagttggtgctgaacatctgggcgaaggtggaagct',
-#                'atggggctcagcgacggggaatggcagttggtgctgaatgcctgggggaaggtggaggct')
+

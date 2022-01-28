@@ -53,7 +53,10 @@ class GeneticDataGenerator:
             df_temp = df_temp.transpose()
 
             # convert locus tag from list to str
-            df_temp['locus_tag'] = df_temp['locus_tag'].str[0]
+            if self.verbose:
+                df_temp['locus_tag'] = df_temp['locus_tag'].str[0]
+            else:
+                df_temp['gene'] = df_temp['gene'].str[0]
 
             # concat main and temp.
             _df = pd.concat([main_df, df_temp], axis=1)
@@ -71,12 +74,14 @@ class GeneticDataGenerator:
                  _table: dict = table,
                  hidrophobic_amino: list = Hidrophobic,
                  hidrophilic_amino: list = Hidrophilic,
-                 cols_to_drop: list = None):
+                 cols_to_drop: list = None,
+                 verbose: bool = True):
 
         self.gb_features = None
         self.uni_df = None
         self.gb_df = None
         self.sequence = None
+        self.verbose = verbose
         self.answers_file = answers_file
         self.genebank_file = genebank_file
         self.unifile = unifile
