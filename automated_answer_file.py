@@ -14,11 +14,6 @@ class AutomatedAnswerFile:
         with open(self.answers_file, 'a') as answersFile:
             answersFile.write(f'\nQuestion {question_number}\n')
 
-    def write_more_info(self,
-                        more_info: str):
-        with open(self.answers_file, 'a') as answersFile:
-            answersFile.write(f'\n\t{more_info} \n')
-
     def write_answer_from_dict(self,
                                answer_dict: dict,
                                section: str = None,
@@ -50,7 +45,7 @@ class AutomatedAnswerFile:
                     answersFile.write(f'{tab * tabs_number}{key} : {value}\n')
 
             if more_info:
-                self.write_more_info(more_info=more_info)
+                answersFile.write(f'\n\t{more_info} \n')
 
     def write_answer_from_string(self,
                                  answer: str,
@@ -79,7 +74,7 @@ class AutomatedAnswerFile:
             answersFile.write(f'{tab * tabs_number}{answer}\n')
 
             if more_info:
-                self.write_more_info(more_info=more_info)
+                answersFile.write(f'\n\t{more_info} \n')
 
     def write_answer_from_dataframe(self,
                                     answer_dataframe: DataFrame,
@@ -92,6 +87,8 @@ class AutomatedAnswerFile:
                                     write_dataframe_index: bool = False,
                                     more_info: str = None,
                                     question_number: str = None):
+        tab = '\t'
+        tabs_number = 1
 
         if unwanted_columns_in_dataframe:
             answer_dataframe.drop(unwanted_columns_in_dataframe, axis=1)
@@ -117,4 +114,4 @@ class AutomatedAnswerFile:
             answersFile.write(f'\n{dataframe_as_string}\n\n')
 
             if more_info:
-                self.write_more_info(more_info=more_info)
+                answersFile.write(f'\t{more_info} \n')

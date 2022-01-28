@@ -323,7 +323,7 @@ def consistent_checks_data_file(df: pd.DataFrame,
             else:
                 automated_answer_file.write_answer_from_dict(answer_dict=data_to_dict,
                                                              data_description=f'Error number {index+1}:')
-        automated_answer_file.write_more_info('** gene_exceptions.csv file with the errors was created')
+
 
         create_csv_file(columns=['gene_name', 'start', 'end', 'strand', 'error'],
                         data=data_file_errors,
