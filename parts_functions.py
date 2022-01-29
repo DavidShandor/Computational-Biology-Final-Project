@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import NamedTuple
 
 import matplotlib.pyplot as plt
@@ -20,6 +18,7 @@ hidro_prec = []
 
 # TODO: Document all and write answers into files.
 #  NOTE: for each object we create there is another file (but maybe you can concat them?)
+
 
 def get_all_genes_type_and_amount(df: pd.DataFrame,
                                   col: str = 'type',
@@ -47,11 +46,11 @@ def calc_df_stats(_s: pd.Series,
 
     return{
         'description': _description,
-        'total_length': _s.sum(),
-        'max_length': _s.max(),
-        'min_length': _s.min(),
-        'average_length': _s.mean(),
-        'median_length': _s.median(),
+        'total': round(sum(_s), 2),
+        'max': round(max(_s), 2),
+        'min': round(min(_s), 2),
+        'average': round(np.average(_s), 2),
+        'median': round(np.median(_s), 2)
     }
 
 
@@ -60,17 +59,19 @@ def calc_list_stats(_s: list,
                     section: str = None,
                     automated_answer_file: AutomatedAnswerFile = None) -> dict:
     """
+    @param automated_answer_file:
+    @param section:
     @param _description:
     @param _s:
     @return:
     """
     stats = {
         'description': _description,
-        'total': sum(_s),
-        'max': max(_s),
-        'min': min(_s),
-        'average': np.average(_s),
-        'median': np.median(_s),
+        'total': round(sum(_s), 2),
+        'max': round(max(_s), 2),
+        'min': round(min(_s), 2),
+        'average': round(np.average(_s), 2),
+        'median': round(np.median(_s), 2)
     }
 
     automated_answer_file.write_answer_from_dict(answer_dict=stats,
@@ -105,19 +106,21 @@ def characterization_of_gene_lengths(_df: pd.DataFrame,
                                                  answer_description='Statistics for protein and non proteins-',
                                                  data_description='Proteins info:',
                                                  unwanted_fields_in_dict=['description', 'total_length'])
+
     automated_answer_file.write_answer_from_dict(answer_dict=non_protein_stats,
                                                  data_description='Non proteins info:',
                                                  unwanted_fields_in_dict=['description', 'total_length'],
                                                  more_info='** histograms for all genes/protein/non protein will be shown on screen')
 
-    return df_protein, (protein_stats, non_protein_stats), (list(df_protein['sequence length']), list(df_non_protein['sequence length']), list(_df['sequence length']))
+    return df_protein, (protein_stats, non_protein_stats),\
+        (df_protein['sequence length'], df_non_protein['sequence length'], df_protein['sequence length'].append(df_non_protein['sequence length']))
 
 
 def build_histograms(hist_title: str,
                      hist_value: list,
                      x_label: str,
                      y_label: str,
-                     bins_num: int | list | range,
+                     bins_num: int | list | range = None,
                      show_grid: bool = 'True',
                      graph_color: str = 'blue',
                      rows: int = None,
@@ -130,13 +133,16 @@ def build_histograms(hist_title: str,
     # y_high_lim: int = 200):
     """
     Builds histogram using Matplotlib
-    :param hist_title: the title
-    :param hist_value: the values for the histogram as list
-    :param x_label: x axis label as str
-    :param y_label: y axis label as str
-    :param bins_num: number of bins in the graph as int
-    :param show_grid: show grid as boolean
-    :param graph_color: graph color as str
+    @param hist_title: the title
+    @param hist_value: the values for the histogram as list
+    @param x_label: x axis label as str
+    @param y_label: y axis label as str
+    @param bins_num: number of bins in the graph as int
+    @param show_grid: show grid as boolean
+    @param graph_color: graph color as str
+    @param rows:
+    @param columns:
+    @param cell:
     """
     # :param x_low_lim: x axis minimum value as int
     # :param x_high_lim: x axis max value as int
@@ -167,8 +173,23 @@ def count_occ_in_seq(seq, occ):
 def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
                                      df_prot: pd.DataFrame,
                                      automated_answer_file: AutomatedAnswerFile = None) -> tuple[list:pd.DataFrame, list: float]:
+    # """
+    # 1. Calculates the GC percentage in the whole gene
+    # 2. Calculates the average GC in the proteins
+    # 3. Retains all GC percentage values of all proteins
+    # 4. Finds the 5 highest GC percentage genes
+    # 5. Finds the 5 lowest GC percentage genes
+    # :param number_of_proteins: the number of the protein genes
+    # :return: a tuple with -
+    #         1. GC percentage in the whole gene as float
+    #         2 average GC in the proteins as float
+    #         3. list of all GC percentage values of all proteins
+    #         4. 5 highest GC percentage genes as list
+    #         5. 5 lowest GC percentage genes as list
+    # """
     """
 
+    @param automated_answer_file:
     @param obj:
     @param df_prot:
     @return:
@@ -186,7 +207,6 @@ def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
     answer_for_part_three_a = f'GC percentage in the whole genome: {full_gc_percent}'
     answer_for_part_three_b = f'GC average percentage in the proteins: {avg_prot_gc_percent}'
 
-    print(largest_5.columns)
     automated_answer_file.write_answer_from_string(answer=answer_for_part_three_a,
                                                    section='3',
                                                    answer_description='Calculation of GC percentage in genes-')
@@ -199,45 +219,6 @@ def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
                                                       specific_wanted_columns_in_dataframe=['gene', 'locus_tag', 'start', 'end', 'strand', 'gene gc%'],
                                                       more_info='** histogram for the GC percentage in proteins will be shown on screen')
     return (df_prot, largest_5, smallest_5), (full_gc_percent, avg_prot_gc_percent)
-
-    # """
-    # 1. Calculates the GC percentage in the whole gene
-    # 2. Calculates the average GC in the proteins
-    # 3. Retains all GC percentage values of all proteins
-    # 4. Finds the 5 highest GC percentage genes
-    # 5. Finds the 5 lowest GC percentage genes
-    # :param number_of_proteins: the number of the protein genes
-    # :return: a tuple with -
-    #         1. GC percentage in the whole gene as float
-    #         2 average GC in the proteins as float
-    #         3. list of all GC percentage values of all proteins
-    #         4. 5 highest GC percentage genes as list
-    #         5. 5 lowest GC percentage genes as list
-    # """
-
-    # # TODO add all_genes_data to description and add GeneInfo class the coverted gene (coverts to protein/ ...)
-## TODO: I didn't write this todos...
-
-#     with open(self.answers_file, 'a') as answersFile:
-#         answersFile.write('\n3.Calculation of GC percentage in genes\n')
-#         answersFile.write(f'\t Full gene GC percentage: {gc_percentage_full_gene}\n')
-#         answersFile.write(f'\t Average GC percentage in proteins: {gc_average_percentage_proteins}\n')
-#         answersFile.write('Five highest GC percentage genes-\n')
-#         for gene in five_highest_gc_genes:
-#             answersFile.write(f'Gene name: {gene[1]}\n')
-#             answersFile.write(f'\t GC percentage: {gene[0]}\n')
-#             answersFile.write(f'\t Start: {gene[2]}\n')
-#             answersFile.write(f'\t End: {gene[3]}\n')
-#             answersFile.write(f'\t Strand: {gene[4]}\n')
-#         answersFile.write('Five lowest GC percentage genes-\n')
-#         for gene in five_lowest_gc_genes:
-#             answersFile.write(f'Gene name: {gene[1]}\n')
-#             answersFile.write(f'\t GC percentage: {gene[0]}\n')
-#             answersFile.write(f'\t Start: {gene[2]}\n')
-#             answersFile.write(f'\t End: {gene[3]}\n')
-#             answersFile.write(f'\t Strand: {gene[4]}\n')
-#         answersFile.write('** histogram for the GC percentage in proteins will be shown on screen\n')
-
 
 
 class DataFileErrorGenes(NamedTuple):
@@ -341,21 +322,10 @@ def consistent_checks_data_file(df: pd.DataFrame,
                 automated_answer_file.write_answer_from_dict(answer_dict=data_to_dict,
                                                              data_description=f'Error number {index+1}:')
 
-
         create_csv_file(columns=['gene_name', 'start', 'end', 'strand', 'error'],
                         data=data_file_errors,
                         csv_file_name='gene_exceptions.csv')
-#     with open(self.answers_file, 'a') as answersFile:
-#         answersFile.write('\n4.Consistent check in the data file\n')
-#         answersFile.write('Data file errors -\n')
-#         for error in data_file_errors:
-#             answersFile.write(f'Gene name: {error[0]}\n')
-#             answersFile.write(f'\t Start: {error[1]}\n')
-#             answersFile.write(f'\t End: {error[2]}\n')
-#             answersFile.write(f'\t Strand: {error[3]}\n')
-#             answersFile.write(f'\t Error: {error[4]}\n')
-#         answersFile.write('** gene_exceptions.csv file with the errors was created\n')
-#
+
     return data_file_errors
 
 
@@ -437,7 +407,6 @@ def compare_files_data(first_df: pd.DataFrame,
                         f'\tProteins in second file only: {second_only_len}\n'
                         f'\tFirst data file number of duplicates or unreviewed genes: {first_diff}\n'
                         f'\tSecond data file number of duplicates or unreviewed genes: {second_diff}')
-
 
     automated_answer_file.write_answer_from_string(answer=answer_for_two_a,
                                                    section='1',
@@ -610,6 +579,3 @@ def calc_selection(seq1: str,
     print(f'The selection is: {select}')
 
     return dn, ds, dn_ds_ratio, select
-
-
-

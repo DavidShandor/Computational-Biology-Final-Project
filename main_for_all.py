@@ -49,16 +49,15 @@ if __name__ == '__main__':
     hist_title = ['Protein length', 'Non Protein length', 'All genes length']
     hist_val = gen_len
     colors = ['blue', 'green', 'yellow']
-    bins = list(range(0, 100, 10))
 
-    # TODO: check all histograms , bins are not good fit and also range. make sure its look good
     for _title, val, color in zip(hist_title, hist_val, colors):
         func.build_histograms(hist_title=_title,
                               hist_value=val,
                               x_label='Length',
                               y_label='Number of genes',
-                              bins_num=bins,
                               graph_color=color)
+
+    # TODO: answer the question: What we can say about those histograms? (q. 2.D)
 
     print('\nQuestion 3')
 
@@ -69,11 +68,12 @@ if __name__ == '__main__':
     print(f'GC average percentage in the proteins: {gc_percent[1]}')
 
     print(f'The histogram is shown on screen')
-    # TODO: check histogram
-    func.build_histograms(hist_title='GC percentage proteins',
+
+    bins = range(0, 100)
+    func.build_histograms(hist_title='Gene GC percentage',
                           hist_value=list(df_prot[0].loc[:, 'gene gc%']),
                           x_label='GC percentage',
-                          y_label='Number of proteins',
+                          y_label='Number of genes',
                           bins_num=bins)
 
     col_to_5 = ['gene', 'start', 'end', 'strand', 'gene gc%', 'locus_tag', 'translation']
@@ -84,11 +84,6 @@ if __name__ == '__main__':
     data_file_errors = func.consistent_checks_data_file(part_a.gb_df,
                                                         automated_answer_file=automated_answer_file)
     print(f'Data file errors: {data_file_errors}')
-
-    # TODO: make this function works.
-    # func.create_csv_file(columns=['Gene name', 'Start position', 'End position', 'Strand', 'Error'],
-    #                      data=data_file_errors,
-    #                      csv_file_name='gene_exceptions.csv')
 
     print('*--------------- Part B ---------------*')
     # --------------- once again: DO NOT DELTE THIS COMMENTS ---------------
@@ -123,7 +118,6 @@ if __name__ == '__main__':
 
     trans_len = func.trans_len
     hidro_prec = func.hidro_prec
-    # TODO: this paragraph need to be written into the answers file
     """
     The internal environment of the structure is Hydrophobic,
     and the proteins in the Trans-membranous move through this structure
@@ -142,10 +136,10 @@ if __name__ == '__main__':
 
     print('Transmembrane Sequences Hidrophobic Stats: \n', hidro_prec_stat)
 
-    titles = ['Transmembrane Sequences Length Distribution', 'Transmembrane Sequences Hidro-acids% Distribution']
+    titles = ['Transmembrane Sequences Length Distribution', 'Transmembrane Sequences Hydro-acids% Distribution']
     val = [trans_len, hidro_prec]
-    x_l = ['Transmembrane Sequences Length', 'Hidrophobic(%)']
-    bins = [list(range(10, 40, 5)), list(range(0, 100, 10))]
+    x_l = ['Transmembrane Sequences Length', 'Hydrophobic(%)']
+    bins = [list(range(10, 40)), list(range(0, 100))]
 
     for t, v, x, b in zip(titles, val, x_l, bins):
         func.build_histograms(hist_title=t,
@@ -168,12 +162,7 @@ if __name__ == '__main__':
     A_gc_percentage = A_df['gene gc%']
     B_gc_percentage = B_df['gene gc%']
     A_not_B_locus_gc_percentage = A_not_B_locus['gene gc%']
-    # func.build_histograms(hist_title='GC percentage in B group',
-    #                       hist_value=B_gc_percentage,
-    #                       x_label='Percentage',
-    #                       y_label='Gene length',
-    #                       bins_num=range(0, 100, 10),
-    #                       graph_color='grey')
+
     func.calc_list_stats(A_df['gene gc%'],
                          _description='Statistics for group A genes GC percentage',
                          section='3',
@@ -188,13 +177,13 @@ if __name__ == '__main__':
     histograms_titles = ['Group A', 'Group B', 'Group A not B']
     histograms_data = [A_gc_percentage, B_gc_percentage, A_not_B_locus_gc_percentage]
     colors = ['red', 'blue', 'green']
-
+    bins = range(100)
     for index, (title, data, color) in enumerate(zip(histograms_titles, histograms_data, colors), start=1):
         func.build_histograms(hist_title=title,
                               hist_value=data,
                               x_label='Percentage',
                               y_label='Number of Genes',
-                              bins_num=range(0, 100),
+                              bins_num=bins,
                               graph_color=color,
                               rows=2,
                               columns=2,
@@ -204,43 +193,37 @@ if __name__ == '__main__':
     plt.xlabel('Percentage ')
     plt.ylabel('Number of Genes')
     plt.title('B and A not B')
-    # plt.xlim(x_low_lim, x_high_lim)
-    # plt.ylim(y_low_lim, y_high_lim)
     plt.grid(True)
-    plt.hist(x=B_gc_percentage, bins=range(0, 100), facecolor='black', density=True)
-    plt.hist(x=A_not_B_locus_gc_percentage, bins=range(0, 100), facecolor='yellow', density=True)
-
+    plt.hist(x=[B_gc_percentage, A_not_B_locus_gc_percentage],
+             bins=bins, color=['blue', 'yellow'], label=['B', 'A not B'])
+    plt.legend(loc='upper right')
     plt.tight_layout()
     plt.show()
 
-
-
-
-
-    print('#################### PART C ############################')
-    print('Question 1\n')
-    january = 'CoronaJanuary2022.gb'
-    july = 'CoronaJuly2020.gb'
-
-    # list of cols to drop
-    drop_jan = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
-                'country', 'collection_date', 'ribosomal_slippage', 'codon_start']
-    drop_jul = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
-                'country', 'collection_date', 'ribosomal_slippage', 'codon_start',
-                'inference', 'function', 'gene_synonym']
-
-    january = GeneticDataGenerator(genebank_file=january, answers_file='january',
-                                   cols_to_drop=drop_jan, verbose=False)
-    july = GeneticDataGenerator(genebank_file=july, answers_file='july',
-                                cols_to_drop=drop_jul, verbose=False)
-
-    print(january.gb_df['gene'].value_counts())
-    print(july.gb_df['gene'].value_counts())
-
-    covid_synon = func.count_mutation_by_type()
-    print(covid_synon)
-
-    print('Question 2\n')
+    # print('#################### PART C ############################')
+    # print('Question 1\n')
+    # january = 'CoronaJanuary2022.gb'
+    # july = 'CoronaJuly2020.gb'
+    #
+    # # list of cols to drop
+    # drop_jan = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
+    #             'country', 'collection_date', 'ribosomal_slippage', 'codon_start']
+    # drop_jul = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
+    #             'country', 'collection_date', 'ribosomal_slippage', 'codon_start',
+    #             'inference', 'function', 'gene_synonym']
+    #
+    # january = GeneticDataGenerator(genebank_file=january, answers_file='january',
+    #                                cols_to_drop=drop_jan, verbose=False)
+    # july = GeneticDataGenerator(genebank_file=july, answers_file='july',
+    #                             cols_to_drop=drop_jul, verbose=False)
+    #
+    # print(january.gb_df['gene'].value_counts())
+    # print(july.gb_df['gene'].value_counts())
+    #
+    # covid_synon = func.count_mutation_by_type()
+    # print(covid_synon)
+    #
+    # print('Question 2\n')
     # len list = [same_len, first_only_len, first_diff, second_only_len, second_diff]
     # same_gene_df, first_only_df, second_only_df, len_list = func.compare_files_data(first_df=january.gb_df,
     #                                                                                 second_df=july.gb_df,
