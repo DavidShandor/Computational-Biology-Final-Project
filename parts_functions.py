@@ -56,20 +56,29 @@ def calc_df_stats(_s: pd.Series,
 
 
 def calc_list_stats(_s: list,
-                    _description: str) -> dict:
+                    _description: str,
+                    section: str = None,
+                    automated_answer_file: AutomatedAnswerFile = None) -> dict:
     """
     @param _description:
     @param _s:
     @return:
     """
-    return{
+    stats = {
         'description': _description,
-        'total_length': sum(_s),
-        'max_length': max(_s),
-        'min_length': min(_s),
-        'average_length': np.average(_s),
-        'median_length': np.median(_s),
+        'total': sum(_s),
+        'max': max(_s),
+        'min': min(_s),
+        'average': np.average(_s),
+        'median': np.median(_s),
     }
+
+    automated_answer_file.write_answer_from_dict(answer_dict=stats,
+                                                 section=section,
+                                                 data_description=_description,
+                                                 unwanted_fields_in_dict=['description'])
+
+    return stats
 
 
 def characterization_of_gene_lengths(_df: pd.DataFrame,
@@ -108,9 +117,13 @@ def build_histograms(hist_title: str,
                      hist_value: list,
                      x_label: str,
                      y_label: str,
-                     bins_num: int | list,
+                     bins_num: int | list | range,
                      show_grid: bool = 'True',
-                     graph_color: str = 'blue'):
+                     graph_color: str = 'blue',
+                     rows: int = None,
+                     columns: int = None,
+                     cell: int = None):
+
     # x_low_lim: int = 0,
     # x_high_lim: int = 4000,
     # y_low_lim: int = 0,
@@ -129,6 +142,8 @@ def build_histograms(hist_title: str,
     # :param x_high_lim: x axis max value as int
     # :param y_low_lim: y axis minimum value as int
     # :param y_high_lim: y axis max value as int
+    if rows and columns:
+        plt.subplot(rows, columns, cell)
 
     plt.xlabel(x_label)
     plt.ylabel(y_label)
@@ -137,8 +152,10 @@ def build_histograms(hist_title: str,
     # plt.ylim(y_low_lim, y_high_lim)
     plt.grid(show_grid)
     plt.hist(x=hist_value, bins=bins_num, facecolor=graph_color)
-    plt.tight_layout()
-    plt.show()
+
+    if not(rows and columns):
+        plt.tight_layout()
+        plt.show()
 
 
 # count occurrence of substrings' list in a sequence
@@ -391,7 +408,9 @@ def fix_gb_uni_diff(gb_df: pd.DataFrame,
 
 def compare_files_data(first_df: pd.DataFrame,
                        second_df: pd.DataFrame,
-                       col1: str, col2: str) -> tuple[list: pd.DataFrame, list: int]:
+                       col1: str,
+                       col2: str,
+                       automated_answer_file: AutomatedAnswerFile = None) -> tuple[list: pd.DataFrame, list: int]:
 
     first_s = set(first_df[col1])
     second_s = set(second_df[col2])
@@ -399,7 +418,7 @@ def compare_files_data(first_df: pd.DataFrame,
     # same protein in both
     same_gene_list = first_s.intersection(second_s)
     same_gene_df = first_df[first_df[col1].isin(same_gene_list)]
-    print(len(same_gene_df))
+
     # protein exist only in genebank file
     first_only_list = first_s.difference(second_s)
     first_only = first_df[first_df[col1].isin(first_only_list)]
@@ -414,11 +433,22 @@ def compare_files_data(first_df: pd.DataFrame,
     first_diff = len(first_df.index) - same_len - first_only_len
     second_diff = len(second_df.index) - same_len - second_only_len
 
-    print('Same genes in both files: ', same_len)
-    print('Genes in first file only: ', first_only_len)
-    print('Proteins in second file only: ', second_only_len)
-    print(f'First data file number of duplicates or unreviewed genes: {first_diff}\n'
-          f'Second data file number of duplicates or unreviewed genes: {second_diff}')
+    answer_for_two_a = (f'Same genes in both files: {same_len}\n'
+                        f'\tProteins in second file only: {second_only_len}\n'
+                        f'\tFirst data file number of duplicates or unreviewed genes: {first_diff}\n'
+                        f'\tSecond data file number of duplicates or unreviewed genes: {second_diff}')
+
+
+    automated_answer_file.write_answer_from_string(answer=answer_for_two_a,
+                                                   section='1',
+                                                   answer_description='Protein comparison by gene locus tag-',
+                                                   more_info='** pie chart for the difference between two databases files',
+                                                   question_number='2')
+    # print('Same genes in both files: ', same_len)
+    # print('Genes in first file only: ', first_only_len)
+    # print('Proteins in second file only: ', second_only_len)
+    # print(f'First data file number of duplicates or unreviewed genes: {first_diff}\n'
+    #       f'Second data file number of duplicates or unreviewed genes: {second_diff}')
 
     return same_gene_df, first_only, second_only,\
         (same_len, first_only_len, first_diff, second_only_len, second_diff)

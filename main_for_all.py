@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 
 from data_generator import GeneticDataGenerator
@@ -111,7 +112,8 @@ if __name__ == '__main__':
     same_prot_df, f_only_df, s_only_df, len_list = func.compare_files_data(first_df=fixed_gb_df,
                                                                            second_df=part_b.uni_df,
                                                                            col1='locus_tag',
-                                                                           col2='locus')
+                                                                           col2='locus',
+                                                                           automated_answer_file=automated_answer_file)
 
     # show visualization of the data:
     func.compare_graph(len_list)
@@ -129,9 +131,15 @@ if __name__ == '__main__':
     that create these proteins will be Hydrophobic or will have a high percentage of
     hydrophobic amino acids .This assumption is similar to the results we received in the histogram
     """
-    trans_len_stats = func.calc_list_stats(trans_len, 'Trans-membranous stats')
+    trans_len_stats = func.calc_list_stats(trans_len,
+                                           _description='Transmembrane Sequences Length Stats:',
+                                           section='2',
+                                           automated_answer_file=automated_answer_file)
     print('Transmembrane Sequences Length Stats: \n', trans_len_stats)
-    hidro_prec_stat = func.calc_list_stats(hidro_prec, 'Hidrophobic stats')
+    hidro_prec_stat = func.calc_list_stats(hidro_prec,
+                                           _description='Transmembrane Sequences Hydrophobic Percentage Stats:',
+                                           automated_answer_file=automated_answer_file)
+
     print('Transmembrane Sequences Hidrophobic Stats: \n', hidro_prec_stat)
 
     titles = ['Transmembrane Sequences Length Distribution', 'Transmembrane Sequences Hidro-acids% Distribution']
@@ -151,7 +159,63 @@ if __name__ == '__main__':
     A_df = same_prot_df
     B_df = pd.merge(same_prot_df, trans_df, how='inner', left_on='locus_tag', right_on='locus')
 
-    print(len(A_df), len(B_df), len(trans_df))
+    A_df_locus = set(A_df['locus_tag'])
+    B_df_locus = set(B_df['locus_tag'])
+
+    A_not_B_locus = A_df_locus.difference(B_df_locus)
+    A_not_B_locus = A_df[A_df['locus_tag'].isin(A_not_B_locus)]
+
+    A_gc_percentage = A_df['gene gc%']
+    B_gc_percentage = B_df['gene gc%']
+    A_not_B_locus_gc_percentage = A_not_B_locus['gene gc%']
+    # func.build_histograms(hist_title='GC percentage in B group',
+    #                       hist_value=B_gc_percentage,
+    #                       x_label='Percentage',
+    #                       y_label='Gene length',
+    #                       bins_num=range(0, 100, 10),
+    #                       graph_color='grey')
+    func.calc_list_stats(A_df['gene gc%'],
+                         _description='Statistics for group A genes GC percentage',
+                         section='3',
+                         automated_answer_file=automated_answer_file)
+    func.calc_list_stats(B_gc_percentage,
+                         _description='Statistics for group B genes GC percentage',
+                         automated_answer_file=automated_answer_file)
+    func.calc_list_stats(A_not_B_locus_gc_percentage,
+                         _description='Statistics for group A not B genes GC percentage',
+                         automated_answer_file=automated_answer_file)
+
+    histograms_titles = ['Group A', 'Group B', 'Group A not B']
+    histograms_data = [A_gc_percentage, B_gc_percentage, A_not_B_locus_gc_percentage]
+    colors = ['red', 'blue', 'green']
+
+    for index, (title, data, color) in enumerate(zip(histograms_titles, histograms_data, colors), start=1):
+        func.build_histograms(hist_title=title,
+                              hist_value=data,
+                              x_label='Percentage',
+                              y_label='Number of Genes',
+                              bins_num=range(0, 100),
+                              graph_color=color,
+                              rows=2,
+                              columns=2,
+                              cell=index)
+
+    plt.subplot(2, 2, 4)
+    plt.xlabel('Percentage ')
+    plt.ylabel('Number of Genes')
+    plt.title('B and A not B')
+    # plt.xlim(x_low_lim, x_high_lim)
+    # plt.ylim(y_low_lim, y_high_lim)
+    plt.grid(True)
+    plt.hist(x=B_gc_percentage, bins=range(0, 100), facecolor='black', density=True)
+    plt.hist(x=A_not_B_locus_gc_percentage, bins=range(0, 100), facecolor='yellow', density=True)
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
 
     print('#################### PART C ############################')
     print('Question 1\n')
@@ -178,8 +242,10 @@ if __name__ == '__main__':
 
     print('Question 2\n')
     # len list = [same_len, first_only_len, first_diff, second_only_len, second_diff]
-    same_gene_df, first_only_df, second_only_df, len_list = func.compare_files_data(first_df=january.gb_df,
-                                                                                    second_df=july.gb_df,
-                                                                                    col1='gene', col2='gene')
+    # same_gene_df, first_only_df, second_only_df, len_list = func.compare_files_data(first_df=january.gb_df,
+    #                                                                                 second_df=july.gb_df,
+    #                                                                                 col1='gene',
+    #                                                                                 col2='gene',
+    #                                                                                 automated_answer_file=automated_answer_file)
 
     # TODO: do the last part on this question.
