@@ -149,7 +149,6 @@ if __name__ == '__main__':
                               bins_num=b)
 
     print('Question 3:\n')
-    # TODO: I start this question but didn't finish yet. It's just to draw histograms. leave it to me if you want.
     A_df = same_prot_df
     B_df = pd.merge(same_prot_df, trans_df, how='inner', left_on='locus_tag', right_on='locus')
 
@@ -187,13 +186,15 @@ if __name__ == '__main__':
                               graph_color=color,
                               rows=2,
                               columns=2,
-                              cell=index)
+                              cell=index,
+                              y_low_lim=0, y_high_lim=500)
 
     plt.subplot(2, 2, 4)
     plt.xlabel('Percentage ')
     plt.ylabel('Number of Genes')
     plt.title('B and A not B')
     plt.grid(True)
+    plt.ylim(0, 500)
     plt.hist(x=[B_gc_percentage, A_not_B_locus_gc_percentage],
              bins=bins, color=['blue', 'yellow'], label=['B', 'A not B'])
     plt.legend(loc='upper right')
@@ -232,3 +233,7 @@ if __name__ == '__main__':
     #                                                                                 automated_answer_file=automated_answer_file)
 
     # TODO: do the last part on this question.
+    # TODO: how to? optional methodology:
+    # 1. alignment by PROTEINS.
+    # 2. by compare to the dna seq: translate the proteins back to codons (1 gap in protein alignment ==> 3 gap in DNA seq)
+    # 3.

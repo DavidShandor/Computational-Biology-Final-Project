@@ -125,14 +125,16 @@ def build_histograms(hist_title: str,
                      graph_color: str = 'blue',
                      rows: int = None,
                      columns: int = None,
-                     cell: int = None):
+                     cell: int = None,
+                     y_low_lim: int = 0,
+                     y_high_lim: int = 0,
+                     x_low_lim: int = 0,
+                     x_high_lim: int = 0):
 
-    # x_low_lim: int = 0,
-    # x_high_lim: int = 4000,
-    # y_low_lim: int = 0,
-    # y_high_lim: int = 200):
     """
     Builds histogram using Matplotlib
+    @param y_high_lim:
+    @param y_low_lim:
     @param hist_title: the title
     @param hist_value: the values for the histogram as list
     @param x_label: x axis label as str
@@ -143,19 +145,24 @@ def build_histograms(hist_title: str,
     @param rows:
     @param columns:
     @param cell:
+    @param x_low_lim: x axis minimum value as int
+    @param x_high_lim: x axis max value as int
+    @param y_low_lim: y axis minimum value as int
+    @param y_high_lim: y axis max value as int
     """
-    # :param x_low_lim: x axis minimum value as int
-    # :param x_high_lim: x axis max value as int
-    # :param y_low_lim: y axis minimum value as int
-    # :param y_high_lim: y axis max value as int
     if rows and columns:
         plt.subplot(rows, columns, cell)
 
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(hist_title)
-    # plt.xlim(x_low_lim, x_high_lim)
-    # plt.ylim(y_low_lim, y_high_lim)
+
+    if x_high_lim:
+        plt.xlim(x_low_lim, x_high_lim)
+
+    if y_high_lim:
+        plt.ylim(y_low_lim, y_high_lim)
+
     plt.grid(show_grid)
     plt.hist(x=hist_value, bins=bins_num, facecolor=graph_color)
 
@@ -532,19 +539,6 @@ def create_transmembrane_df(df: pd.DataFrame):
     return trans_df
 
 
-# TODO: I didn't found what is this function used for. Delete?
-def calc_gf_in_uni(df: pd.DataFrame,
-                   new_col: str,
-                   col: str,
-                   sublist: list,
-                   f):
-    df[new_col] = df.apply(lambda x: f(x[col], sublist), axis=1)
-
-    b_gc = list(df['GC%'])
-
-    return df, max(b_gc), min(b_gc), np.median(b_gc), np.average(b_gc)
-
-
 def count_mutation_by_type(_dict: dict = bac_gencode,
                            nuc: list = Nucleotides) -> dict:
 
@@ -579,3 +573,4 @@ def calc_selection(seq1: str,
     print(f'The selection is: {select}')
 
     return dn, ds, dn_ds_ratio, select
+
