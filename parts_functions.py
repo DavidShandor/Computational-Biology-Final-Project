@@ -8,7 +8,8 @@ from Bio.Data.CodonTable import TranslationError
 from Bio.Seq import translate, reverse_complement
 from Bio.codonalign.codonseq import CodonSeq, cal_dn_ds
 from matplotlib.patches import ConnectionPatch
-
+from Bio.pairwise2 import align
+from Bio.pairwise2 import format_alignment
 from automated_answer_file import AutomatedAnswerFile
 from data_generator import GeneticDataGenerator
 from genetic_data_file import Hidrophobic, bac_gencode, Nucleotides
@@ -411,6 +412,7 @@ def compare_files_data(first_df: pd.DataFrame,
     second_diff = len(second_df.index) - same_len - second_only_len
 
     answer_for_two_a = (f'Same genes in both files: {same_len}\n'
+                        f'\tProteins in first file only: {first_only_len}\n'
                         f'\tProteins in second file only: {second_only_len}\n'
                         f'\tFirst data file number of duplicates or unreviewed genes: {first_diff}\n'
                         f'\tSecond data file number of duplicates or unreviewed genes: {second_diff}')
@@ -491,11 +493,18 @@ def compare_graph(len_list: list):
     total_second = same_len+second_only_len+second_diff
 
     # First file
+
     labels = [['First File', 'Second File'], ['Same', 'First only']]
     title = [['Files Comparison', 'First in-Depth'], ['Files Comparison', 'Second in-Depth']]
     explode = [[0.1, 0], [0, 0.1]]
     data = [[total_first, total_second], [same_len, first_only_len]]
-    angle = -90 * ((same_len+first_only_len) / total_first)
+
+    if first_diff:
+        labels = [['First File', 'Second File'], ['Same', 'First only', 'First Duplicates or Unreviewed']]
+        explode = [[0.1, 0], [0, 0.1, 0.1]]
+        data = [[total_first, total_second], [same_len, first_only_len, first_diff]]
+
+    angle = -90 * ((same_len + first_only_len + first_diff) / total_first)
     plot_pie(_data=data, _labels=labels, _titles=title[0],
              _exp=explode, _angle=angle, _width=0.2)
 
@@ -503,12 +512,12 @@ def compare_graph(len_list: list):
     data = [[total_second, total_first], [same_len, second_only_len, second_diff]]
     labels = [['Second File', 'First File'], ['Same', 'Second only', 'Second Duplicates or Unreviewed']]
     explode = [[0.1, 0], [0, 0.1, 0.1]]
-    angle = -180 * ((same_len+second_only_len) / total_second)
+    angle = -180 * ((same_len + second_only_len + second_diff) / total_second)
     plot_pie(_data=data, _labels=labels, _titles=title[1],
              _exp=explode, _angle=angle, _width=0.2)
 
     compare_chart = [same_len, first_only_len, second_only_len]
-    _labels = ['Same Proteins', 'GeneBank Unique Proteins', 'UniProtKB Unique Proteins']
+    _labels = ['Same Proteins', 'First File Unique Proteins', 'Second File Unique Proteins']
     plt.bar(_labels, compare_chart, color=['r', 'g', 'b'], width=0.1)
     plt.title('Files Comparison')
     plt.tight_layout()
@@ -565,12 +574,61 @@ def calc_selection(seq1: str,
     seq1 = CodonSeq(seq1)
     seq2 = CodonSeq(seq2)
     dn, ds = cal_dn_ds(seq1, seq2)
-    dn_ds_ratio = float(dn / ds)
-    select = 'positive' if dn_ds_ratio >= 1 else 'neutral' if limit < dn_ds_ratio < 1 else 'negative'
-    print("dN:%0.3f " % dn)
-    print("dS:%0.3f " % ds)
-    print("dN/dS:%0.3f " % dn_ds_ratio)
+    if ds != 0 and dn != 0:
+        dn_ds_ratio = float(dn / ds)
+    else:
+        dn_ds_ratio = 1
+    select = 'positive' if dn_ds_ratio > 1 else 'neutral' if limit < dn_ds_ratio <= 1 else 'negative'
+    print("dN: %0.3f " % dn)
+    print("dS: %0.3f " % ds)
+    print("dN/dS: %0.3f " % dn_ds_ratio)
     print(f'The selection is: {select}')
 
     return dn, ds, dn_ds_ratio, select
+
+
+def get_seq_by_prot(dna_seq, prot_seq):
+
+    temp = ''
+    for ind, ltr in enumerate(prot_seq):
+        if ltr == '-':
+            temp += '---'
+        else:
+            temp += dna_seq[ind*3:ind*3+3]
+
+    if temp[:-3] in ['TAA', 'TAG', 'TGA']:
+        temp = temp[:len(temp)-3]
+    # modulo = len(temp) % 3
+    # if modulo != 0:
+
+    return temp
+
+
+def protein_to_dnds(first_file_gene_seq: pd.DataFrame,
+                    second_file_gene_seq: pd.DataFrame,
+                    num: int = 5):
+
+    first = first_file_gene_seq.sort_values(by=['gene'])
+    second = second_file_gene_seq.sort_values(by=['gene'])
+
+    seq_a = first['sequence'][:5]
+    protein_a = first['translation'][:5].str[0]
+
+    seq_b = second['sequence'][:5]
+    protein_b = second['translation'][:5].str[0]
+
+    for s_a, prot_a, s_b, prot_b in zip(seq_a, protein_a, seq_b, protein_b):
+        alignments = align.localxx(prot_a, prot_b)
+        align1, align2, score, begin, end = alignments[0]  # "unzip" the tuple
+        print(format_alignment(align1=align1, align2=align2, score=score, begin=begin, end=end))
+        seq1 = get_seq_by_prot(s_a, align1)
+        seq2 = get_seq_by_prot(s_b, align2)
+        print(seq1)
+        print(seq2)
+        print()
+        calc_selection(seq1, seq2)
+
+
+
+
 

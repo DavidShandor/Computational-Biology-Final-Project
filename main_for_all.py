@@ -8,6 +8,7 @@ import warnings
 warnings.simplefilter('ignore')
 
 
+
 if __name__ == '__main__':
     automated_answer_file = AutomatedAnswerFile('automated_answer_file.txt')
     # TODO: doc all the files: main, func, data generator, etc., and write answers into files (check in the file order).
@@ -51,11 +52,16 @@ if __name__ == '__main__':
     hist_val = gen_len
     colors = ['blue', 'green', 'yellow']
     # bins = range(stats[0]['max'])
-    for _title, val, color in zip(hist_title, hist_val, colors):
+    for i ,(_title, val, color) in enumerate(zip(hist_title, hist_val, colors), start=1):
         func.build_histograms(hist_title=_title,
                               hist_value=val,
                               x_label='Length',
                               y_label='Number of genes',
+                              rows=1,
+                              columns=3,
+                              cell=i,
+                              x_high_lim=17000,
+                              y_high_lim=4500,
                               graph_color=color)
 
     # TODO: answer the question: What we can say about those histograms? (q. 2.D)
@@ -65,8 +71,8 @@ if __name__ == '__main__':
     df_prot, gc_percent = func.calculate_gc_percentage_in_genes(part_a, df_proteins,
                                                                 automated_answer_file=automated_answer_file)
 
-    print(f'GC percentage of the whole genome: {gc_percent[0]}')
-    print(f'GC average percentage in the proteins: {gc_percent[1]}')
+    print(f'GC percentage of the whole genome: {gc_percent[0]: .2f}')
+    print(f'GC average percentage in the proteins: {gc_percent[1]: .2f}')
 
     print(f'The histogram is shown on screen')
 
@@ -140,7 +146,7 @@ if __name__ == '__main__':
     titles = ['Transmembrane Sequences Length Distribution', 'Transmembrane Sequences Hydro-acids% Distribution']
     val = [trans_len, hidro_prec]
     x_l = ['Transmembrane Sequences Length', 'Hydrophobic(%)']
-    bins = [list(range(10, 40)), list(range(0, 100))]
+    bins = [range(10, 40), range(0, 100)]
 
     for t, v, x, b in zip(titles, val, x_l, bins):
         func.build_histograms(hist_title=t,
@@ -204,8 +210,8 @@ if __name__ == '__main__':
 
     # print('#################### PART C ############################')
     # print('Question 1\n')
-    # january = 'CoronaJanuary2022.gb'
-    # july = 'CoronaJuly2020.gb'
+    # january = 'january2022.gb'
+    # july = 'july2020.gb'
     #
     # # list of cols to drop
     # drop_jan = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
@@ -219,20 +225,30 @@ if __name__ == '__main__':
     # july = GeneticDataGenerator(genebank_file=july, answers_file='july',
     #                             cols_to_drop=drop_jul, verbose=False)
     #
-    # print(january.gb_df['gene'].value_counts())
-    # print(july.gb_df['gene'].value_counts())
+    # print(january.gb_df.count())
+    # print(july.gb_df.count())
     #
     # covid_synon = func.count_mutation_by_type()
-    # print(covid_synon)
+    # # print(covid_synon)
     #
     # print('Question 2\n')
-    # len list = [same_len, first_only_len, first_diff, second_only_len, second_diff]
+    # # len list = [same_len, first_only_len, first_diff, second_only_len, second_diff]
     # same_gene_df, first_only_df, second_only_df, len_list = func.compare_files_data(first_df=january.gb_df,
     #                                                                                 second_df=july.gb_df,
     #                                                                                 col1='gene',
     #                                                                                 col2='gene',
     #                                                                                 automated_answer_file=automated_answer_file)
-
+    # # show comparison visualization
+    # # func.compare_graph(len_list)
+    #
+    # # get 5 genes
+    # first_file_gene_seq = july.gb_df[july.gb_df['gene'].isin(same_gene_df['gene'])].dropna(subset='translation')
+    # second_file_gene_seq = january.gb_df[january.gb_df['gene'].isin(same_gene_df['gene'])].dropna(subset='translation')
+    #
+    # func.protein_to_dnds(first_file_gene_seq, second_file_gene_seq)
+    # print(first_file_gene_seq.count())
+    # print()
+    # print(second_file_gene_seq.count())
     # TODO: do the last part on this question.
     # TODO: how to? optional methodology:
     # 1. alignment by PROTEINS.
