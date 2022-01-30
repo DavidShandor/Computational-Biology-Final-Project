@@ -47,9 +47,10 @@ if __name__ == '__main__':
     print(f'The histograms are shown on screen')
 
     hist_title = ['Protein length', 'Non Protein length', 'All genes length']
+    # hist_val = [gen_len[0]/stats[0]['max'], gen_len[1]/stats[1]['max'], gen_len[1]/(stats[0]['max']+stats[1]['max'])]
     hist_val = gen_len
     colors = ['blue', 'green', 'yellow']
-
+    # bins = range(stats[0]['max'])
     for _title, val, color in zip(hist_title, hist_val, colors):
         func.build_histograms(hist_title=_title,
                               hist_value=val,
