@@ -17,9 +17,6 @@ from genetic_data_file import Hidrophobic, bac_gencode, Nucleotides
 trans_len = []
 hidro_prec = []
 
-# TODO: Document all and write answers into files.
-#  NOTE: for each object we create there is another file (but maybe you can concat them?)
-
 
 def get_all_genes_type_and_amount(df: pd.DataFrame,
                                   col: str = 'type',
@@ -442,7 +439,7 @@ def make_autopct(values):
 
 
 def plot_pie(_data, _labels, _titles, _exp, _angle, _width):
-    fig = plt.figure(figsize=(15, 10))
+    fig = plt.figure(figsize=(10, 5))
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
 
@@ -584,7 +581,7 @@ def calc_selection(seq1: str,
     print("dN/dS: %0.3f " % dn_ds_ratio)
     print(f'The selection is: {select}')
 
-    return dn, ds, dn_ds_ratio, select
+    return round(dn, 3), round(ds, 3), round(dn_ds_ratio, 3), select
 
 
 def get_seq_by_prot(dna_seq, prot_seq):
