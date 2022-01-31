@@ -32,6 +32,8 @@ if __name__ == '__main__':
                                   answers_file='Answers part A',
                                   cols_to_drop=cols)
 
+    # func.calculate_gc_percentage_in_genes(part_a, part_a.gb_df,None)
+
     all_gene_dict = func.get_all_genes_type_and_amount(df=part_a.gb_df,
                                                        automated_answer_file=automated_answer_file)
     print(f'All genes and their count in file: {all_gene_dict}')

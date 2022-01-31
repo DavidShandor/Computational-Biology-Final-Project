@@ -203,6 +203,11 @@ def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
     full_gc_percent = count_occ_in_seq(obj.sequence.upper(), gc)
     df_prot = df_prot.assign(gc=df_prot.apply(lambda x: count_occ_in_seq(x.sequence, gc), axis=1))
     df_prot = df_prot.rename({'gc': 'gene gc%'}, axis=1)
+
+    # cols = ['type', 'gene', 'strand', 'start', 'end', 'gene gc%', 'locus_tag']
+    # df_to_csv = df_prot[cols]
+    # df_to_csv = df_to_csv.sort_values(by='start').to_csv('part_a.csv')
+
     avg_prot_gc_percent = df_prot['gene gc%'].mean()
 
     df_prot = df_prot.sort_values(by=['gene gc%'])
