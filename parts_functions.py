@@ -596,37 +596,84 @@ def get_seq_by_prot(dna_seq, prot_seq):
         else:
             temp += dna_seq[ind*3:ind*3+3]
 
-    if temp[:-3] in ['TAA', 'TAG', 'TGA']:
-        temp = temp[:len(temp)-3]
-    # modulo = len(temp) % 3
-    # if modulo != 0:
-
     return temp
+
+
+def check_for_dnds(seq1, seq2):
+
+    frame = 0
+    l_1 = len(seq1)
+    l_2 = len(seq2)
+
+    if l_1 != l_2:
+        frame = np.abs(len(seq1) - len(seq2))
+        print(frame)
+        if l_1 > l_2:
+            seq1 = seq1[frame:]
+        else:
+            seq2 = seq2[frame:]
+
+    for i in range(len(seq1)):
+        if seq1[i*3:i*3+3] in ['TAA', 'TAG', 'TGA'] and (i*3+3) != len(seq1):
+            return None, None
+        if seq2[i*3:i*3+3] in ['TAA', 'TAG', 'TGA'] and (i*3+3) != len(seq2):
+            return None, None
+
+    return seq1, seq2
 
 
 def protein_to_dnds(first_file_gene_seq: pd.DataFrame,
                     second_file_gene_seq: pd.DataFrame,
+                    automated_answer_file: AutomatedAnswerFile,
                     num: int = 5):
 
-    first = first_file_gene_seq.sort_values(by=['gene'])
-    second = second_file_gene_seq.sort_values(by=['gene'])
+    first = first_file_gene_seq.sort_values(by=['gene'], ascending=False)
+    second = second_file_gene_seq.sort_values(by=['gene'], ascending=False)
 
-    seq_a = first['sequence'][:5]
-    protein_a = first['translation'][:5].str[0]
+    seq_a = first['sequence'][:num]
+    protein_a = first['translation'][:num].str[0]
 
-    seq_b = second['sequence'][:5]
-    protein_b = second['translation'][:5].str[0]
+    seq_b = second['sequence'][:num]
+    protein_b = second['translation'][:num].str[0]
 
-    for s_a, prot_a, s_b, prot_b in zip(seq_a, protein_a, seq_b, protein_b):
+    index = []
+    dnds = []
+    for i, (s_a, prot_a, s_b, prot_b) in enumerate(zip(seq_a, protein_a, seq_b, protein_b)):
         alignments = align.localxx(prot_a, prot_b)
         align1, align2, score, begin, end = alignments[0]  # "unzip" the tuple
-        print(format_alignment(align1=align1, align2=align2, score=score, begin=begin, end=end))
         seq1 = get_seq_by_prot(s_a, align1)
         seq2 = get_seq_by_prot(s_b, align2)
-        print(seq1)
-        print(seq2)
-        print()
-        calc_selection(seq1, seq2)
+
+        seq1, seq2 = check_for_dnds(seq1, seq2)
+
+        if seq1 and seq2:
+            try:
+                # return dn, ds, dn_ds_ratio, selection
+                dnds.append(calc_selection(seq1, seq2))
+                index.append(i)
+            except KeyError:
+                print(KeyError)
+
+            except RuntimeError:
+                print(RuntimeError)
+
+    dnds_df = first.iloc[index]
+    dnds_df['dnds (dn, ds, dn_ds_ratio, selection)'] = dnds
+
+    print(dnds_df.head)
+
+    automated_answer_file.write_answer_from_dataframe(answer_dataframe=dnds_df,
+                                                      section='2',
+                                                      answer_description='The dnds ratio for chosen genes',
+                                                      specific_wanted_columns_in_dataframe=['gene', 'start', 'end', 'strand', 'dnds (dn, ds, dn_ds_ratio, selection)'],
+                                                      question_number='3')
+
+    return dnds_df
+
+
+
+
+
 
 
 
