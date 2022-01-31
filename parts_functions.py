@@ -9,7 +9,6 @@ from Bio.Seq import translate, reverse_complement
 from Bio.codonalign.codonseq import CodonSeq, cal_dn_ds
 from matplotlib.patches import ConnectionPatch
 from Bio.pairwise2 import align
-from Bio.pairwise2 import format_alignment
 from automated_answer_file import AutomatedAnswerFile
 from data_generator import GeneticDataGenerator
 from genetic_data_file import Hidrophobic, bac_gencode, Nucleotides
@@ -249,7 +248,6 @@ def convert_to_protein(gene_seq: str,
     :param table: the table to use as int
     :return: a tuple[ error occurred false/true, the translation/error]
     """
-    # print(table, strand, ind)
     if strand == -1:
         gene_seq = reverse_complement(gene_seq)
 
@@ -293,7 +291,6 @@ def consistent_checks_data_file(df: pd.DataFrame,
     for ind in range(len(df.index)):
         if df.loc[ind, 'type'] == 'gene' and df.loc[ind+1, 'type'] == 'CDS':
             if df.loc[ind, 'start'] == df.loc[ind+1, 'start'] and df.loc[ind, 'end'] == df.loc[ind+1, 'end']:
-                # print(df.loc[ind, 'transl_table'])
                 error_found, gene_to_protein = convert_to_protein(gene_seq=df.loc[ind, 'sequence'],
                                                                   strand=df.loc[ind, 'strand'],
                                                                   table=df.loc[ind+1, 'transl_table'][0])
@@ -424,11 +421,6 @@ def compare_files_data(first_df: pd.DataFrame,
                                                    answer_description='Protein comparison by gene locus tag-',
                                                    more_info='** pie chart for the difference between two databases files',
                                                    question_number='2')
-    # print('Same genes in both files: ', same_len)
-    # print('Genes in first file only: ', first_only_len)
-    # print('Proteins in second file only: ', second_only_len)
-    # print(f'First data file number of duplicates or unreviewed genes: {first_diff}\n'
-    #       f'Second data file number of duplicates or unreviewed genes: {second_diff}')
 
     return same_gene_df, first_only, second_only,\
         (same_len, first_only_len, first_diff, second_only_len, second_diff)
@@ -555,7 +547,7 @@ def count_mutation_by_type(_dict: dict = bac_gencode,
 
     gen_dict = {}
     for key, value in _dict.items():
-        synon = 0
+        synonyms = 0
         for codon in nuc:
             for position in range(3):
                 if key[position] == codon:
@@ -565,8 +557,8 @@ def count_mutation_by_type(_dict: dict = bac_gencode,
                     temp[position] = codon
                     temp = "".join(temp)
                     if value == _dict[temp]:
-                        synon += 1
-        gen_dict[key] = synon
+                        synonyms += 1
+        gen_dict[key] = synonyms
     return gen_dict
 
 
@@ -581,10 +573,6 @@ def calc_selection(seq1: str,
     else:
         dn_ds_ratio = 1
     select = 'positive' if dn_ds_ratio > 1 else 'neutral' if limit < dn_ds_ratio <= 1 else 'negative'
-    print("dN: %0.3f " % dn)
-    print("dS: %0.3f " % ds)
-    print("dN/dS: %0.3f " % dn_ds_ratio)
-    print(f'The selection is: {select}')
 
     return round(dn, 3), round(ds, 3), round(dn_ds_ratio, 3), select
 
@@ -603,13 +591,11 @@ def get_seq_by_prot(dna_seq, prot_seq):
 
 def check_for_dnds(seq1, seq2):
 
-    frame = 0
     l_1 = len(seq1)
     l_2 = len(seq2)
 
     if l_1 != l_2:
         frame = np.abs(len(seq1) - len(seq2))
-        print(frame)
         if l_1 > l_2:
             seq1 = seq1[frame:]
         else:
@@ -654,15 +640,13 @@ def protein_to_dnds(first_file_gene_seq: pd.DataFrame,
                 dnds.append(calc_selection(seq1, seq2))
                 index.append(i)
             except KeyError:
-                print(KeyError)
+                pass
 
             except RuntimeError:
-                print(RuntimeError)
+                pass
 
     dnds_df = first.iloc[index]
     dnds_df['dnds (dn, ds, dn_ds_ratio, selection)'] = dnds
-
-    print(dnds_df.head)
 
     automated_answer_file.write_answer_from_dataframe(answer_dataframe=dnds_df,
                                                       section='2',
@@ -671,13 +655,3 @@ def protein_to_dnds(first_file_gene_seq: pd.DataFrame,
                                                       question_number='3')
 
     return dnds_df
-
-
-
-
-
-
-
-
-
-

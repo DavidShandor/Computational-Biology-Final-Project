@@ -1,1 +1,139 @@
 Final Project Automated Answers
+
+Question 1
+
+	1. All genes types and their count-
+	gene : 4536
+	CDS : 4237
+	misc_RNA : 93
+	misc_feature : 89
+	tRNA : 86
+	rRNA : 30
+	ncRNA : 2
+
+	2. Statistics for protein and non proteins-
+	Proteins info:
+		total : 3705554
+		max : 16467
+		min : 63
+		average : 874.57
+		median : 756.0
+	Non proteins info:
+		total : 97236
+		max : 2928
+		min : 33
+		average : 324.12
+		median : 127.5
+
+	** histograms for all genes/protein/non protein will be shown on screen 
+
+	3. Calculation of GC percentage in genes-
+	GC percentage in the whole genome: 43.51440813017155
+	GC average percentage in the proteins: 43.11955812707801
+	Five highest GC percentage genes:
+
+ gene  locus_tag   start    end   strand  gene gc%
+[nnrA] BSU_38720 3972447 3973278    -1   56.438026
+[epsM] BSU_34240 3516232 3516883    -1   54.685100
+ [aag] BSU_38620 3964277 3964868    -1   54.314721
+[ydaS] BSU_04370  492653  492911    -1   54.263566
+[rhgX] BSU_07060  772141  773980     1   53.833605
+
+	Five lowest GC percentage genes:
+
+ gene  locus_tag   start    end   strand  gene gc%
+[yqaD] BSU_26360 2699509 2699677    -1   20.833333
+[cotC] BSU_17700 1904994 1905195    -1   23.383085
+[cotU] BSU_17670 1901116 1901377    -1   24.521073
+[rtbE] BSU_39290 4036343 4036787    -1   25.450450
+[yydC] BSU_40210 4132337 4132736    -1   25.814536
+
+	** histogram for the GC percentage in proteins will be shown on screen 
+
+	4. Errors found in data file (gene bank file)-
+	Error number 1:
+		gene_name : BSU_20040
+		start : 2159980
+		end : 2161778
+		strand : -1
+		error : Sequence length 1798 is not a multiple of three
+	Error number 2:
+		gene_name : BSU_20060
+		start : 2162107
+		end : 2165614
+		strand : -1
+		error : Extra in frame stop codon found.
+	Error number 3:
+		gene_name : BSU_35290
+		start : 3627138
+		end : 3628240
+		strand : -1
+		error : Sequence length 1102 is not a multiple of three
+
+Question 2
+
+	1. Protein comparison by gene locus tag-
+	Same genes in both files: 4154
+	Proteins in first file only: 83
+	Proteins in second file only: 35
+	First data file number of duplicates or unreviewed genes: 0
+	Second data file number of duplicates or unreviewed genes: 4352
+
+	** pie chart for the difference between two databases files 
+
+	2.
+	Transmembrane Sequences Length Stats:
+		total : 228206
+		max : 44
+		min : 11
+		average : 21.39
+		median : 21.0
+	Transmembrane Sequences Hydrophobic Percentage Stats:
+		total : 618674.45
+		max : 90.48
+		min : 23.81
+		average : 57.99
+		median : 57.14
+
+	3.
+	Statistics for group A genes GC percentage
+		total : 179523.41
+		max : 56.44
+		min : 20.83
+		average : 43.22
+		median : 43.96
+	Statistics for group B genes GC percentage
+		total : 42359.6
+		max : 54.26
+		min : 20.83
+		average : 43.31
+		median : 44.09
+	Statistics for group A not B genes GC percentage
+		total : 137163.81
+		max : 56.44
+		min : 23.38
+		average : 43.19
+		median : 43.93
+
+Question 2
+
+	1. Protein comparison by gene locus tag-
+	Same genes in both files: 12
+	Proteins in first file only: 2
+	Proteins in second file only: 2
+	First data file number of duplicates or unreviewed genes: 12
+	Second data file number of duplicates or unreviewed genes: 43
+
+	** pie chart for the difference between two databases files 
+
+Question 3
+
+	2. The dnds ratio for chosen genes
+
+ gene  start   end  strand dnds (dn, ds, dn_ds_ratio, selection)
+ ORF8 27893  28259    1        (1.914, 2.43, 0.788, negative)   
+ORF7a 27393  27759    1              (0.004, 0.0, 1, neutral)   
+ ORF6 27201  27387    1                (0.0, 0.0, 1, neutral)   
+ORF10 29557  29674    1                (0.0, 0.0, 1, neutral)   
+    E 26244  26472    1                (0.0, 0.0, 1, neutral)   
+
