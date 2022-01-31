@@ -120,6 +120,7 @@ def build_histograms(hist_title: str,
                      bins_num: int | list | range,
                      show_grid: bool = 'True',
                      graph_color: str = 'blue',
+                     fig_name: str = None,
                      rows: int = None,
                      columns: int = None,
                      cell: int = None):
@@ -155,7 +156,8 @@ def build_histograms(hist_title: str,
 
     if not(rows and columns):
         plt.tight_layout()
-        plt.show()
+        # plt.show()
+        plt.savefig(f'{fig_name}.jpg')
 
 
 # count occurrence of substrings' list in a sequence

@@ -57,6 +57,7 @@ if __name__ == '__main__':
                               hist_value=val,
                               x_label='Length',
                               y_label='Number of genes',
+                              fig_name=_title,
                               bins_num=bins,
                               graph_color=color)
 
