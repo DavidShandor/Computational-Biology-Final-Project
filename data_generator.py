@@ -68,7 +68,6 @@ class GeneticDataGenerator:
             self.gb_df = _df
 
     def __init__(self,
-                 answers_file: str = None,
                  genebank_file: str = None,
                  unifile: str = None,
                  _table: dict = table,
@@ -82,7 +81,6 @@ class GeneticDataGenerator:
         self.gb_df = None
         self.sequence = None
         self.verbose = verbose
-        self.answers_file = answers_file
         self.genebank_file = genebank_file
         self.unifile = unifile
         self.table = table
@@ -92,6 +90,3 @@ class GeneticDataGenerator:
         self.read_uni_dataframe()
         self.parse_genebank_file()
         self.create_gb_dataframe()
-        # with open(self.answers_file, 'w') as answersFile:
-
-

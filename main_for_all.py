@@ -9,11 +9,10 @@ warnings.simplefilter('ignore')
 
 
 if __name__ == '__main__':
+    print('Start project. Only histograms and graphs will be shown on the screen.\n'
+          'All the data will be written into "automated_answer_file.txt" file.')
     automated_answer_file = AutomatedAnswerFile('automated_answer_file.txt')
-    # TODO: doc all the files: main, func, data generator, etc., and write answers into files (check in the file order).
-    print('*--------------- Part A ---------------*')
-
-    # ------------ DO NOT DELETE THIS COMMENTS --------------------
+    # ------------ File meta data--------------------
     # Index(['type', 'strand', 'start', 'end', 'sequence', 'db_xref', 'gene',
     #        'locus_tag', 'old_locus_tag', 'function', 'experiment', 'note',
     #        'codon_start', 'transl_table', 'product', 'protein_id', 'translation'],
@@ -21,54 +20,45 @@ if __name__ == '__main__':
     # type ={'gene': 4536, 'CDS': 4237, 'misc_RNA': 93,
     #       'misc_feature': 89, 'tRNA': 86, 'rRNA': 30,
     #       'ncRNA': 2, 'source': 1}
-
-    print('Question 1')
-
+    # PART A
     gb_file = 'BS168.gb'
     cols = ['organism', 'mol_type', 'strain', 'sub_species', 'type_material',
             'pseudo', 'ncRNA_class', 'ribosomal_slippage', 'inference', 'EC_number']
 
     part_a = GeneticDataGenerator(genebank_file=gb_file,
-                                  answers_file='Answers part A',
                                   cols_to_drop=cols)
+
+    # func.calculate_gc_percentage_in_genes(part_a, part_a.gb_df,None)
 
     all_gene_dict = func.get_all_genes_type_and_amount(df=part_a.gb_df,
                                                        automated_answer_file=automated_answer_file)
-    print(f'All genes and their count in file: {all_gene_dict}')
 
-    print('\nQuestion 2')
     df_proteins, stats, gen_len = func.characterization_of_gene_lengths(_df=part_a.gb_df,
                                                                         automated_answer_file=automated_answer_file)
-
-    print(f'Statistics of each group:')
-    print(f'proteins: {stats[0]}\n'
-          f'non proteins: {stats[1]}\n')
-
-    print(f'The histograms are shown on screen')
 
     hist_title = ['Protein length', 'Non Protein length', 'All genes length']
     # hist_val = [gen_len[0]/stats[0]['max'], gen_len[1]/stats[1]['max'], gen_len[1]/(stats[0]['max']+stats[1]['max'])]
     hist_val = gen_len
     colors = ['blue', 'green', 'yellow']
     # bins = range(stats[0]['max'])
-    for _title, val, color in zip(hist_title, hist_val, colors):
+    for i, (_title, val, color) in enumerate(zip(hist_title, hist_val, colors), start=1):
         func.build_histograms(hist_title=_title,
                               hist_value=val,
                               x_label='Length',
                               y_label='Number of genes',
+                              rows=1,
+                              columns=3,
+                              cell=i,
+                              x_high_lim=17000,
+                              y_high_lim=4500,
                               graph_color=color)
 
+    plt.tight_layout()
+    plt.show()
     # TODO: answer the question: What we can say about those histograms? (q. 2.D)
-
-    print('\nQuestion 3')
 
     df_prot, gc_percent = func.calculate_gc_percentage_in_genes(part_a, df_proteins,
                                                                 automated_answer_file=automated_answer_file)
-
-    print(f'GC percentage of the whole genome: {gc_percent[0]}')
-    print(f'GC average percentage in the proteins: {gc_percent[1]}')
-
-    print(f'The histogram is shown on screen')
 
     bins = range(0, 100)
     func.build_histograms(hist_title='Gene GC percentage',
@@ -78,22 +68,18 @@ if __name__ == '__main__':
                           bins_num=bins)
 
     col_to_5 = ['gene', 'start', 'end', 'strand', 'gene gc%', 'locus_tag', 'translation']
-    print(f'5 gene with the largest GC%:\n\t {df_prot[1].loc[:, col_to_5]}')
-    print(f'5 gene with the smallest GC%:\n\t {df_prot[2].loc[:, col_to_5]}')
 
-    print('\nQuestion 4')
     data_file_errors = func.consistent_checks_data_file(part_a.gb_df,
                                                         automated_answer_file=automated_answer_file)
-    print(f'Data file errors: {data_file_errors}')
 
-    print('*--------------- Part B ---------------*')
-    # --------------- once again: DO NOT DELTE THIS COMMENTS ---------------
+    # PART B
+    # --------------- File meta data ---------------
     # # Index(['Entry', 'Entry name', 'Status', 'Protein names', 'Gene names',
     # #        'Length', 'Transmembrane', 'Sequence', 'name', 'locus'],
     # #       dtype='object')
     #
     unifile = 'uniprot_file.xlsx'
-    part_b = GeneticDataGenerator(unifile=unifile, answers_file='Answer part B')
+    part_b = GeneticDataGenerator(unifile=unifile)
 
     part_b.uni_df.rename({'Gene names  (primary )': 'name',
                           'Gene names  (ordered locus )': 'locus'}, axis=1, inplace=True)
@@ -103,7 +89,6 @@ if __name__ == '__main__':
                                                       col2='locus',
                                                       from_c="_", to_c="")
 
-    print('Question 1\n')
     # len list = [same_len, first_only_len, first_diff, second_only_len, second_diff]
     same_prot_df, f_only_df, s_only_df, len_list = func.compare_files_data(first_df=fixed_gb_df,
                                                                            second_df=part_b.uni_df,
@@ -114,7 +99,6 @@ if __name__ == '__main__':
     # show visualization of the data:
     func.compare_graph(len_list)
 
-    print('Question 2\n')
     trans_df = func.create_transmembrane_df(part_b.uni_df)
 
     trans_len = func.trans_len
@@ -130,17 +114,15 @@ if __name__ == '__main__':
                                            _description='Transmembrane Sequences Length Stats:',
                                            section='2',
                                            automated_answer_file=automated_answer_file)
-    print('Transmembrane Sequences Length Stats: \n', trans_len_stats)
+
     hidro_prec_stat = func.calc_list_stats(hidro_prec,
                                            _description='Transmembrane Sequences Hydrophobic Percentage Stats:',
                                            automated_answer_file=automated_answer_file)
 
-    print('Transmembrane Sequences Hidrophobic Stats: \n', hidro_prec_stat)
-
     titles = ['Transmembrane Sequences Length Distribution', 'Transmembrane Sequences Hydro-acids% Distribution']
     val = [trans_len, hidro_prec]
     x_l = ['Transmembrane Sequences Length', 'Hydrophobic(%)']
-    bins = [list(range(10, 40)), list(range(0, 100))]
+    bins = [range(10, 40), range(0, 100)]
 
     for t, v, x, b in zip(titles, val, x_l, bins):
         func.build_histograms(hist_title=t,
@@ -149,7 +131,6 @@ if __name__ == '__main__':
                               y_label='Number of Sequences',
                               bins_num=b)
 
-    print('Question 3:\n')
     A_df = same_prot_df
     B_df = pd.merge(same_prot_df, trans_df, how='inner', left_on='locus_tag', right_on='locus')
 
@@ -202,39 +183,35 @@ if __name__ == '__main__':
     plt.tight_layout()
     plt.show()
 
-    # print('#################### PART C ############################')
-    # print('Question 1\n')
-    # january = 'CoronaJanuary2022.gb'
-    # july = 'CoronaJuly2020.gb'
-    #
-    # # list of cols to drop
-    # drop_jan = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
-    #             'country', 'collection_date', 'ribosomal_slippage', 'codon_start']
-    # drop_jul = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
-    #             'country', 'collection_date', 'ribosomal_slippage', 'codon_start',
-    #             'inference', 'function', 'gene_synonym']
-    #
-    # january = GeneticDataGenerator(genebank_file=january, answers_file='january',
-    #                                cols_to_drop=drop_jan, verbose=False)
-    # july = GeneticDataGenerator(genebank_file=july, answers_file='july',
-    #                             cols_to_drop=drop_jul, verbose=False)
-    #
-    # print(january.gb_df['gene'].value_counts())
-    # print(july.gb_df['gene'].value_counts())
-    #
-    # covid_synon = func.count_mutation_by_type()
-    # print(covid_synon)
-    #
-    # print('Question 2\n')
-    # len list = [same_len, first_only_len, first_diff, second_only_len, second_diff]
-    # same_gene_df, first_only_df, second_only_df, len_list = func.compare_files_data(first_df=january.gb_df,
-    #                                                                                 second_df=july.gb_df,
-    #                                                                                 col1='gene',
-    #                                                                                 col2='gene',
-    #                                                                                 automated_answer_file=automated_answer_file)
+    # PART C
+    january = 'january2022.gb'
+    july = 'july2020.gb'
 
-    # TODO: do the last part on this question.
-    # TODO: how to? optional methodology:
-    # 1. alignment by PROTEINS.
-    # 2. by compare to the dna seq: translate the proteins back to codons (1 gap in protein alignment ==> 3 gap in DNA seq)
-    # 3.
+    # list of cols to drop
+    drop_jan = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
+                'country', 'collection_date', 'ribosomal_slippage', 'codon_start']
+    drop_jul = ['organism', 'mol_type', 'isolate', 'host', 'db_xref',
+                'country', 'collection_date', 'ribosomal_slippage', 'codon_start',
+                'inference', 'function', 'gene_synonym']
+
+    january = GeneticDataGenerator(genebank_file=january,
+                                   cols_to_drop=drop_jan, verbose=False)
+    july = GeneticDataGenerator(genebank_file=july,
+                                cols_to_drop=drop_jul, verbose=False)
+
+    covid_synonyms = func.count_mutation_by_type()
+
+    # len list = [same_len, first_only_len, first_diff, second_only_len, second_diff]
+    same_gene_df, first_only_df, second_only_df, len_list = func.compare_files_data(first_df=january.gb_df,
+                                                                                    second_df=july.gb_df,
+                                                                                    col1='gene',
+                                                                                    col2='gene',
+                                                                                    automated_answer_file=automated_answer_file)
+    # show comparison visualization
+    func.compare_graph(len_list)
+
+    # get 5 genes
+    first_file_gene_seq = july.gb_df[july.gb_df['gene'].isin(same_gene_df['gene'])].dropna(subset='translation')
+    second_file_gene_seq = january.gb_df[january.gb_df['gene'].isin(same_gene_df['gene'])].dropna(subset='translation')
+
+    dnds_df = func.protein_to_dnds(first_file_gene_seq, second_file_gene_seq, num=12, automated_answer_file=automated_answer_file)

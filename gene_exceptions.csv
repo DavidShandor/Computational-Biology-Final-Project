@@ -1,0 +1,4 @@
+gene_name,start,end,strand,error
+BSU_20040,2159980,2161778,-1,Sequence length 1798 is not a multiple of three
+BSU_20060,2162107,2165614,-1,Extra in frame stop codon found.
+BSU_35290,3627138,3628240,-1,Sequence length 1102 is not a multiple of three

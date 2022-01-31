@@ -8,16 +8,13 @@ from Bio.Data.CodonTable import TranslationError
 from Bio.Seq import translate, reverse_complement
 from Bio.codonalign.codonseq import CodonSeq, cal_dn_ds
 from matplotlib.patches import ConnectionPatch
-
+from Bio.pairwise2 import align
 from automated_answer_file import AutomatedAnswerFile
 from data_generator import GeneticDataGenerator
 from genetic_data_file import Hidrophobic, bac_gencode, Nucleotides
 
 trans_len = []
 hidro_prec = []
-
-# TODO: Document all and write answers into files.
-#  NOTE: for each object we create there is another file (but maybe you can concat them?)
 
 
 def get_all_genes_type_and_amount(df: pd.DataFrame,
@@ -205,6 +202,11 @@ def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
     full_gc_percent = count_occ_in_seq(obj.sequence.upper(), gc)
     df_prot = df_prot.assign(gc=df_prot.apply(lambda x: count_occ_in_seq(x.sequence, gc), axis=1))
     df_prot = df_prot.rename({'gc': 'gene gc%'}, axis=1)
+
+    # cols = ['type', 'gene', 'strand', 'start', 'end', 'gene gc%', 'locus_tag']
+    # df_to_csv = df_prot[cols]
+    # df_to_csv = df_to_csv.sort_values(by='start').to_csv('part_a.csv')
+
     avg_prot_gc_percent = df_prot['gene gc%'].mean()
 
     df_prot = df_prot.sort_values(by=['gene gc%'])
@@ -246,7 +248,6 @@ def convert_to_protein(gene_seq: str,
     :param table: the table to use as int
     :return: a tuple[ error occurred false/true, the translation/error]
     """
-    # print(table, strand, ind)
     if strand == -1:
         gene_seq = reverse_complement(gene_seq)
 
@@ -290,7 +291,6 @@ def consistent_checks_data_file(df: pd.DataFrame,
     for ind in range(len(df.index)):
         if df.loc[ind, 'type'] == 'gene' and df.loc[ind+1, 'type'] == 'CDS':
             if df.loc[ind, 'start'] == df.loc[ind+1, 'start'] and df.loc[ind, 'end'] == df.loc[ind+1, 'end']:
-                # print(df.loc[ind, 'transl_table'])
                 error_found, gene_to_protein = convert_to_protein(gene_seq=df.loc[ind, 'sequence'],
                                                                   strand=df.loc[ind, 'strand'],
                                                                   table=df.loc[ind+1, 'transl_table'][0])
@@ -411,6 +411,7 @@ def compare_files_data(first_df: pd.DataFrame,
     second_diff = len(second_df.index) - same_len - second_only_len
 
     answer_for_two_a = (f'Same genes in both files: {same_len}\n'
+                        f'\tProteins in first file only: {first_only_len}\n'
                         f'\tProteins in second file only: {second_only_len}\n'
                         f'\tFirst data file number of duplicates or unreviewed genes: {first_diff}\n'
                         f'\tSecond data file number of duplicates or unreviewed genes: {second_diff}')
@@ -420,11 +421,6 @@ def compare_files_data(first_df: pd.DataFrame,
                                                    answer_description='Protein comparison by gene locus tag-',
                                                    more_info='** pie chart for the difference between two databases files',
                                                    question_number='2')
-    # print('Same genes in both files: ', same_len)
-    # print('Genes in first file only: ', first_only_len)
-    # print('Proteins in second file only: ', second_only_len)
-    # print(f'First data file number of duplicates or unreviewed genes: {first_diff}\n'
-    #       f'Second data file number of duplicates or unreviewed genes: {second_diff}')
 
     return same_gene_df, first_only, second_only,\
         (same_len, first_only_len, first_diff, second_only_len, second_diff)
@@ -440,7 +436,7 @@ def make_autopct(values):
 
 
 def plot_pie(_data, _labels, _titles, _exp, _angle, _width):
-    fig = plt.figure(figsize=(15, 10))
+    fig = plt.figure(figsize=(10, 5))
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
 
@@ -491,11 +487,18 @@ def compare_graph(len_list: list):
     total_second = same_len+second_only_len+second_diff
 
     # First file
+
     labels = [['First File', 'Second File'], ['Same', 'First only']]
     title = [['Files Comparison', 'First in-Depth'], ['Files Comparison', 'Second in-Depth']]
     explode = [[0.1, 0], [0, 0.1]]
     data = [[total_first, total_second], [same_len, first_only_len]]
-    angle = -90 * ((same_len+first_only_len) / total_first)
+
+    if first_diff:
+        labels = [['First File', 'Second File'], ['Same', 'First only', 'First Duplicates or Unreviewed']]
+        explode = [[0.1, 0], [0, 0.1, 0.1]]
+        data = [[total_first, total_second], [same_len, first_only_len, first_diff]]
+
+    angle = -90 * ((same_len + first_only_len + first_diff) / total_first)
     plot_pie(_data=data, _labels=labels, _titles=title[0],
              _exp=explode, _angle=angle, _width=0.2)
 
@@ -503,12 +506,12 @@ def compare_graph(len_list: list):
     data = [[total_second, total_first], [same_len, second_only_len, second_diff]]
     labels = [['Second File', 'First File'], ['Same', 'Second only', 'Second Duplicates or Unreviewed']]
     explode = [[0.1, 0], [0, 0.1, 0.1]]
-    angle = -180 * ((same_len+second_only_len) / total_second)
+    angle = -180 * ((same_len + second_only_len + second_diff) / total_second)
     plot_pie(_data=data, _labels=labels, _titles=title[1],
              _exp=explode, _angle=angle, _width=0.2)
 
     compare_chart = [same_len, first_only_len, second_only_len]
-    _labels = ['Same Proteins', 'GeneBank Unique Proteins', 'UniProtKB Unique Proteins']
+    _labels = ['Same Proteins', 'First File Unique Proteins', 'Second File Unique Proteins']
     plt.bar(_labels, compare_chart, color=['r', 'g', 'b'], width=0.1)
     plt.title('Files Comparison')
     plt.tight_layout()
@@ -544,7 +547,7 @@ def count_mutation_by_type(_dict: dict = bac_gencode,
 
     gen_dict = {}
     for key, value in _dict.items():
-        synon = 0
+        synonyms = 0
         for codon in nuc:
             for position in range(3):
                 if key[position] == codon:
@@ -554,8 +557,8 @@ def count_mutation_by_type(_dict: dict = bac_gencode,
                     temp[position] = codon
                     temp = "".join(temp)
                     if value == _dict[temp]:
-                        synon += 1
-        gen_dict[key] = synon
+                        synonyms += 1
+        gen_dict[key] = synonyms
     return gen_dict
 
 
@@ -565,12 +568,90 @@ def calc_selection(seq1: str,
     seq1 = CodonSeq(seq1)
     seq2 = CodonSeq(seq2)
     dn, ds = cal_dn_ds(seq1, seq2)
-    dn_ds_ratio = float(dn / ds)
-    select = 'positive' if dn_ds_ratio >= 1 else 'neutral' if limit < dn_ds_ratio < 1 else 'negative'
-    print("dN:%0.3f " % dn)
-    print("dS:%0.3f " % ds)
-    print("dN/dS:%0.3f " % dn_ds_ratio)
-    print(f'The selection is: {select}')
+    if ds != 0 and dn != 0:
+        dn_ds_ratio = float(dn / ds)
+    else:
+        dn_ds_ratio = 1
+    select = 'positive' if dn_ds_ratio > 1 else 'neutral' if limit < dn_ds_ratio <= 1 else 'negative'
 
-    return dn, ds, dn_ds_ratio, select
+    return round(dn, 3), round(ds, 3), round(dn_ds_ratio, 3), select
 
+
+def get_seq_by_prot(dna_seq, prot_seq):
+
+    temp = ''
+    for ind, ltr in enumerate(prot_seq):
+        if ltr == '-':
+            temp += '---'
+        else:
+            temp += dna_seq[ind*3:ind*3+3]
+
+    return temp
+
+
+def check_for_dnds(seq1, seq2):
+
+    l_1 = len(seq1)
+    l_2 = len(seq2)
+
+    if l_1 != l_2:
+        frame = np.abs(len(seq1) - len(seq2))
+        if l_1 > l_2:
+            seq1 = seq1[frame:]
+        else:
+            seq2 = seq2[frame:]
+
+    for i in range(len(seq1)):
+        if seq1[i*3:i*3+3] in ['TAA', 'TAG', 'TGA'] and (i*3+3) != len(seq1):
+            return None, None
+        if seq2[i*3:i*3+3] in ['TAA', 'TAG', 'TGA'] and (i*3+3) != len(seq2):
+            return None, None
+
+    return seq1, seq2
+
+
+def protein_to_dnds(first_file_gene_seq: pd.DataFrame,
+                    second_file_gene_seq: pd.DataFrame,
+                    automated_answer_file: AutomatedAnswerFile,
+                    num: int = 5):
+
+    first = first_file_gene_seq.sort_values(by=['gene'], ascending=False)
+    second = second_file_gene_seq.sort_values(by=['gene'], ascending=False)
+
+    seq_a = first['sequence'][:num]
+    protein_a = first['translation'][:num].str[0]
+
+    seq_b = second['sequence'][:num]
+    protein_b = second['translation'][:num].str[0]
+
+    index = []
+    dnds = []
+    for i, (s_a, prot_a, s_b, prot_b) in enumerate(zip(seq_a, protein_a, seq_b, protein_b)):
+        alignments = align.localxx(prot_a, prot_b)
+        align1, align2, score, begin, end = alignments[0]  # "unzip" the tuple
+        seq1 = get_seq_by_prot(s_a, align1)
+        seq2 = get_seq_by_prot(s_b, align2)
+
+        seq1, seq2 = check_for_dnds(seq1, seq2)
+
+        if seq1 and seq2:
+            try:
+                # return dn, ds, dn_ds_ratio, selection
+                dnds.append(calc_selection(seq1, seq2))
+                index.append(i)
+            except KeyError:
+                pass
+
+            except RuntimeError:
+                pass
+
+    dnds_df = first.iloc[index]
+    dnds_df['dnds (dn, ds, dn_ds_ratio, selection)'] = dnds
+
+    automated_answer_file.write_answer_from_dataframe(answer_dataframe=dnds_df,
+                                                      section='2',
+                                                      answer_description='The dnds ratio for chosen genes',
+                                                      specific_wanted_columns_in_dataframe=['gene', 'start', 'end', 'strand', 'dnds (dn, ds, dn_ds_ratio, selection)'],
+                                                      question_number='3')
+
+    return dnds_df
