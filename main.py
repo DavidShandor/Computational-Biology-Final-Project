@@ -193,7 +193,7 @@ if __name__ == '__main__':
     july = GeneticDataGenerator(genebank_file=july,
                                 cols_to_drop=drop_jul, verbose=False)
 
-    covid_synonyms = func.count_mutation_by_type()
+    covid_synonyms = func.count_mutation_by_type(automated_answer_file=automated_answer_file)
 
     # len list = [same_len, first_only_len, first_diff, second_only_len, second_diff]
     same_gene_df, first_only_df, second_only_df, len_list = func.compare_files_data(first_df=january.gb_df,

@@ -115,6 +115,74 @@ Question 2
 		average : 43.19
 		median : 43.93
 
+Question 3
+
+	1. Possible synonyms mutations for the Covid-19 translate table
+	TTT : 1
+	TCT : 3
+	TAT : 1
+	TGT : 1
+	TTC : 1
+	TCC : 3
+	TAC : 1
+	TGC : 1
+	TTA : 2
+	TCA : 3
+	TAA : 2
+	TGA : 1
+	TTG : 2
+	TCG : 3
+	TAG : 1
+	TGG : 0
+	CTT : 3
+	CCT : 3
+	CAT : 1
+	CGT : 3
+	CTC : 3
+	CCC : 3
+	CAC : 1
+	CGC : 3
+	CTA : 4
+	CCA : 3
+	CAA : 1
+	CGA : 4
+	CTG : 4
+	CCG : 3
+	CAG : 1
+	CGG : 4
+	ATT : 2
+	ACT : 3
+	AAT : 1
+	AGT : 1
+	ATC : 2
+	ACC : 3
+	AAC : 1
+	AGC : 1
+	ATA : 2
+	ACA : 3
+	AAA : 1
+	AGA : 2
+	ATG : 0
+	ACG : 3
+	AAG : 1
+	AGG : 2
+	GTT : 3
+	GCT : 3
+	GAT : 1
+	GGT : 3
+	GTC : 3
+	GCC : 3
+	GAC : 1
+	GGC : 3
+	GTA : 3
+	GCA : 3
+	GAA : 1
+	GGA : 3
+	GTG : 3
+	GCG : 3
+	GAG : 1
+	GGG : 3
+
 Question 2
 
 	1. Protein comparison by gene locus tag-
@@ -127,24 +195,6 @@ Question 2
 	** pie chart for the difference between two databases files 
 
 Question 3
-
-	1.1 The synonym count dictionary:
-	
-	{'TTT': 1, 'TCT': 3, 'TAT': 1, 'TGT': 1, 'TTC': 1, 'TCC': 3, 'TAC': 1, 'TGC': 1, 'TTA': 2,
- 	'TCA': 3, 'TAA': 2, 'TGA': 1, 'TTG': 2, 'TCG': 3, 'TAG': 1, 'TGG': 0, 'CTT': 3, 'CCT': 3, 'CAT': 1,
- 	'CGT': 3, 'CTC': 3, 'CCC': 3, 'CAC': 1, 'CGC': 3, 'CTA': 4, 'CCA': 3, 'CAA': 1, 'CGA': 4, 'CTG': 4,
- 	'CCG': 3, 'CAG': 1, 'CGG': 4, 'ATT': 2, 'ACT': 3, 'AAT': 1, 'AGT': 1, 'ATC': 2, 'ACC': 3, 'AAC': 1,
- 	'AGC': 1, 'ATA': 2, 'ACA': 3, 'AAA': 1, 'AGA': 2, 'ATG': 0, 'ACG': 3, 'AAG': 1, 'AGG': 2, 'GTT': 3,
- 	'GCT': 3, 'GAT': 1, 'GGT': 3, 'GTC': 3, 'GCC': 3, 'GAC': 1, 'GGC': 3, 'GTA': 3, 'GCA': 3, 'GAA': 1,
- 	'GGA': 3, 'GTG': 3, 'GCG': 3, 'GAG': 1, 'GGG': 3}
-
-	1.2 Protein comparison by gene locus tag:
-		Same genes in both files: 12
-		Proteins in first file only: 2
-		Proteins in second file only: 2
-		First data file number of duplicates or unreviewed genes: 12
-		Second data file number of duplicates or unreviewed genes: 43
-
 
 	2. The dnds ratio for chosen genes
 

@@ -583,11 +583,13 @@ def create_transmembrane_df(df: pd.DataFrame):
 
 
 def count_mutation_by_type(_dict: dict = bac_gencode,
-                           nuc: list = Nucleotides) -> dict:
+                           nuc: list = Nucleotides,
+                           automated_answer_file: AutomatedAnswerFile = None) -> dict:
     """
 
-    :param _dict: the gencode we are counting by
-    :param nuc: the nucleotide list
+    :@param _dict: the gencode we are counting by
+    :@param nuc: the nucleotide list
+    :@param automated_answer_file: file to write result
     :return: the synonym count for the nucleotides with the given gencode
     """
     gen_dict = {}
@@ -604,6 +606,11 @@ def count_mutation_by_type(_dict: dict = bac_gencode,
                     if value == _dict[temp]:
                         synonyms += 1
         gen_dict[key] = synonyms
+
+    automated_answer_file.write_answer_from_dict(answer_dict=gen_dict,
+                                                 section='1',
+                                                 question_number='3',
+                                                 answer_description='Possible synonyms mutations for the Covid-19 translate table')
     return gen_dict
 
 
