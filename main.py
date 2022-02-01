@@ -5,13 +5,14 @@ from data_generator import GeneticDataGenerator
 import parts_functions as func
 from automated_answer_file import AutomatedAnswerFile
 import warnings
-warnings.simplefilter('ignore')
 
+warnings.simplefilter('ignore')
 
 if __name__ == '__main__':
     print('Start project. Only histograms and graphs will be shown on the screen.\n'
           'All the data will be written into "automated_answer_file.txt" file.')
     automated_answer_file = AutomatedAnswerFile('automated_answer_file.txt')
+
     # ------------ File meta data--------------------
     # Index(['type', 'strand', 'start', 'end', 'sequence', 'db_xref', 'gene',
     #        'locus_tag', 'old_locus_tag', 'function', 'experiment', 'note',
@@ -20,15 +21,16 @@ if __name__ == '__main__':
     # type ={'gene': 4536, 'CDS': 4237, 'misc_RNA': 93,
     #       'misc_feature': 89, 'tRNA': 86, 'rRNA': 30,
     #       'ncRNA': 2, 'source': 1}
+
     # PART A
+    # ----------------------------------
+
     gb_file = 'BS168.gb'
     cols = ['organism', 'mol_type', 'strain', 'sub_species', 'type_material',
             'pseudo', 'ncRNA_class', 'ribosomal_slippage', 'inference', 'EC_number']
 
     part_a = GeneticDataGenerator(genebank_file=gb_file,
                                   cols_to_drop=cols)
-
-    # func.calculate_gc_percentage_in_genes(part_a, part_a.gb_df,None)
 
     all_gene_dict = func.get_all_genes_type_and_amount(df=part_a.gb_df,
                                                        automated_answer_file=automated_answer_file)
@@ -37,10 +39,8 @@ if __name__ == '__main__':
                                                                         automated_answer_file=automated_answer_file)
 
     hist_title = ['Protein length', 'Non Protein length', 'All genes length']
-    # hist_val = [gen_len[0]/stats[0]['max'], gen_len[1]/stats[1]['max'], gen_len[1]/(stats[0]['max']+stats[1]['max'])]
     hist_val = gen_len
     colors = ['blue', 'green', 'yellow']
-    # bins = range(stats[0]['max'])
     for i, (_title, val, color) in enumerate(zip(hist_title, hist_val, colors), start=1):
         func.build_histograms(hist_title=_title,
                               hist_value=val,
@@ -55,7 +55,6 @@ if __name__ == '__main__':
 
     plt.tight_layout()
     plt.show()
-    # TODO: answer the question: What we can say about those histograms? (q. 2.D)
 
     df_prot, gc_percent = func.calculate_gc_percentage_in_genes(part_a, df_proteins,
                                                                 automated_answer_file=automated_answer_file)
@@ -77,7 +76,7 @@ if __name__ == '__main__':
     # # Index(['Entry', 'Entry name', 'Status', 'Protein names', 'Gene names',
     # #        'Length', 'Transmembrane', 'Sequence', 'name', 'locus'],
     # #       dtype='object')
-    #
+
     unifile = 'uniprot_file.xlsx'
     part_b = GeneticDataGenerator(unifile=unifile)
 
@@ -103,13 +102,6 @@ if __name__ == '__main__':
 
     trans_len = func.trans_len
     hidro_prec = func.hidro_prec
-    """
-    The internal environment of the structure is Hydrophobic,
-    and the proteins in the Trans-membranous move through this structure
-    and hence the expectation that the sequences
-    that create these proteins will be Hydrophobic or will have a high percentage of
-    hydrophobic amino acids .This assumption is similar to the results we received in the histogram
-    """
     trans_len_stats = func.calc_list_stats(trans_len,
                                            _description='Transmembrane Sequences Length Stats:',
                                            section='2',
@@ -184,6 +176,8 @@ if __name__ == '__main__':
     plt.show()
 
     # PART C
+    # ------------------------------
+
     january = 'january2022.gb'
     july = 'july2020.gb'
 
@@ -214,4 +208,5 @@ if __name__ == '__main__':
     first_file_gene_seq = july.gb_df[july.gb_df['gene'].isin(same_gene_df['gene'])].dropna(subset='translation')
     second_file_gene_seq = january.gb_df[january.gb_df['gene'].isin(same_gene_df['gene'])].dropna(subset='translation')
 
-    dnds_df = func.protein_to_dnds(first_file_gene_seq, second_file_gene_seq, num=12, automated_answer_file=automated_answer_file)
+    dnds_df = func.protein_to_dnds(first_file_gene_seq, second_file_gene_seq, num=12,
+                                   automated_answer_file=automated_answer_file)

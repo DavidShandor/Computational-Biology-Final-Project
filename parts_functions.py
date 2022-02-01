@@ -22,8 +22,11 @@ def get_all_genes_type_and_amount(df: pd.DataFrame,
                                   automated_answer_file: AutomatedAnswerFile = None) -> dict:
     """
     Count genes by type (CDS/rRNA/misc_RNA etc...)
+    :param df: the data frame
+    :param col: the columns we want to analyse
+    :param automated_answer_file: the answers that we got are written to this file
     :return: a dictionary with the key gene type and the value its amount
-    ** 73612 line in gb file (misc_feature number 46) there is a gene that has CDS and misc_features
+     ** 73612 line in gb file (misc_feature number 46) there is a gene that has CDS and misc_features
     """
     automated_answer_file.write_answer_from_dict(answer_dict=dict(df[col].value_counts()),
                                                  section='1',
@@ -36,9 +39,9 @@ def get_all_genes_type_and_amount(df: pd.DataFrame,
 def calc_df_stats(_s: pd.Series,
                   _description: str) -> dict:
     """
-    @param _description:
-    @param _s:
-    @return:
+    @param _description: a description of the dict
+    @param _s: the col (series) we are analysing
+    @return: a dict with various stats of the series
     """
 
     return{
@@ -56,11 +59,11 @@ def calc_list_stats(_s: list,
                     section: str = None,
                     automated_answer_file: AutomatedAnswerFile = None) -> dict:
     """
-    @param automated_answer_file:
-    @param section:
-    @param _description:
-    @param _s:
-    @return:
+    @param automated_answer_file: write the answers to the answer file
+    @param section: the part of the section we are analysing
+    @param _description: a description of the list we are reading
+    @param _s: the series
+    @return:answer dict with values that we want to calculate
     """
     stats = {
         'description': _description,
@@ -85,6 +88,10 @@ def characterization_of_gene_lengths(_df: pd.DataFrame,
     Counts the length and amount of protein/non-protein genes
     Find the maximum, minimum and average length of protein/non-protein genes
     Preserves the information about the lengths of the genes (all genes/protein/non-protein)
+
+    @param _df: this is the data frame we are analysing
+    @param automated_answer_file: this is where the results of the calculation are saved
+
     :return: tuple with 2 dictionaries one with the info about the protein/ non-protein genes (their amount, length, etc.)
             3 lists with the information about the lengths of the protein/non-protein/all genes
     """
@@ -117,7 +124,7 @@ def build_histograms(hist_title: str,
                      hist_value: list,
                      x_label: str,
                      y_label: str,
-                     bins_num: int | list | range = None,
+                     bins_num = None,
                      show_grid: bool = 'True',
                      graph_color: str = 'blue',
                      rows: int = None,
@@ -193,10 +200,10 @@ def calculate_gc_percentage_in_genes(obj: GeneticDataGenerator,
     # """
     """
 
-    @param automated_answer_file:
-    @param obj:
-    @param df_prot:
-    @return:
+    @param automated_answer_file:this is where the answers are saved to
+    @param obj:contains all required data
+    @param df_prot:the dataframe we are analysing
+    @return:the answeres do answer file with the percentages
     """
     gc = ['G', 'C']
     full_gc_percent = count_occ_in_seq(obj.sequence.upper(), gc)
@@ -388,7 +395,15 @@ def compare_files_data(first_df: pd.DataFrame,
                        col1: str,
                        col2: str,
                        automated_answer_file: AutomatedAnswerFile = None) -> tuple[list: pd.DataFrame, list: int]:
+    """
 
+    :param first_df: the first df we are comparing
+    :param second_df: the second df we are comparing
+    :param col1: the col we are comparing from 1st
+    :param col2: the col we are comparing from 2nd
+    :param automated_answer_file: the result from the comparison
+    :return: The differences and similarities between the 2 files
+    """
     first_s = set(first_df[col1])
     second_s = set(second_df[col2])
 
@@ -436,6 +451,16 @@ def make_autopct(values):
 
 
 def plot_pie(_data, _labels, _titles, _exp, _angle, _width):
+    """
+    This function draws the pie images as displayed
+    :param _data:
+    :param _labels:
+    :param _titles:
+    :param _exp:
+    :param _angle:
+    :param _width:
+    :return: plot figures
+    """
     fig = plt.figure(figsize=(10, 5))
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
@@ -480,7 +505,11 @@ def plot_pie(_data, _labels, _titles, _exp, _angle, _width):
 
 
 def compare_graph(len_list: list):
-
+    """
+    function that compares 2 graphs in images
+    :param len_list: a list with all lengths of the shown data
+    :return: a graph image containing the data
+    """
     same_len, first_only_len, first_diff, second_only_len, second_diff = len_list
 
     total_first = same_len+first_only_len+first_diff
@@ -523,6 +552,12 @@ def count_hidro(seq):
 
 
 def find_all_pos(pos, seq):
+    """
+
+    :param pos: the position on the seq to analyse
+    :param seq: the given gene sequence
+    :return: The Transmembraneous sequence of the gene
+    """
     r1 = re.findall(r'\d*[0-9]\.\.\d*[0-9]', pos)  # find all coordinators of the seq
     res = []
     for r in r1:
@@ -537,6 +572,11 @@ def find_all_pos(pos, seq):
 
 
 def create_transmembrane_df(df: pd.DataFrame):
+    """
+
+    :param df: given data frame
+    :return: creates a transmembrane df
+    """
     trans_df = df[df['Transmembrane'].notna()]
     trans_df['Transmembrane Sequences'] = trans_df.apply(lambda x: find_all_pos(x.Transmembrane, x.Sequence), axis=1)
     return trans_df
@@ -544,7 +584,12 @@ def create_transmembrane_df(df: pd.DataFrame):
 
 def count_mutation_by_type(_dict: dict = bac_gencode,
                            nuc: list = Nucleotides) -> dict:
+    """
 
+    :param _dict: the gencode we are counting by
+    :param nuc: the nucleotide list
+    :return: the synonym count for the nucleotides with the given gencode
+    """
     gen_dict = {}
     for key, value in _dict.items():
         synonyms = 0
@@ -564,6 +609,12 @@ def count_mutation_by_type(_dict: dict = bac_gencode,
 
 def calc_selection(seq1: str,
                    seq2: str) -> tuple[list: int, str]:
+    """
+
+    :param seq1: first DNA sequence
+    :param seq2: second DNA sequence
+    :return: the DN DS ratio
+    """
     limit = 0.95
     seq1 = CodonSeq(seq1)
     seq2 = CodonSeq(seq2)
@@ -578,7 +629,12 @@ def calc_selection(seq1: str,
 
 
 def get_seq_by_prot(dna_seq, prot_seq):
-
+    """
+    this function returns the sequence with gaps fixed
+    :param dna_seq: the given DNA sequence
+    :param prot_seq:  the given Protein
+    :return: fixing the gaps by making the gap count a multiple of 3
+    """
     temp = ''
     for ind, ltr in enumerate(prot_seq):
         if ltr == '-':
@@ -590,6 +646,13 @@ def get_seq_by_prot(dna_seq, prot_seq):
 
 
 def check_for_dnds(seq1, seq2):
+    """
+    this function checks to see if 2 sequences are a match for dn/ds comparing by making sure the are of the same length and that they dont have
+    random stop codons in their sequence - and attempts to fix the reading frame if one of these issues exist.
+    :param seq1: first sequence
+    :param seq2: second sequence
+    :return: None if failed, else returns the sequences after fixing
+    """
 
     l_1 = len(seq1)
     l_2 = len(seq2)
@@ -614,7 +677,14 @@ def protein_to_dnds(first_file_gene_seq: pd.DataFrame,
                     second_file_gene_seq: pd.DataFrame,
                     automated_answer_file: AutomatedAnswerFile,
                     num: int = 5):
-
+    """
+    This function receives 2 sequences and compares a num of genes that are similar and finds the dn/ds ratio between them
+    :param first_file_gene_seq: first gene sequence to compare
+    :param second_file_gene_seq: second gene sequence to compare
+    :param automated_answer_file: the answer file to write to
+    :param num: the number of genes to compare in total
+    :return: the DN/DS ratio
+    """
     first = first_file_gene_seq.sort_values(by=['gene'], ascending=False)
     second = second_file_gene_seq.sort_values(by=['gene'], ascending=False)
 
