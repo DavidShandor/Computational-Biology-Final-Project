@@ -5,7 +5,7 @@ from genetic_data_file import table, Hidrophobic, Hidrophilic
 
 
 class GeneticDataGenerator:
-    """Contain all the genetic data form genbank files and """
+    """Contains all the genetic data form Genbank files and Uniprot """
 
     def read_uni_dataframe(self):
         if self.unifile is not None:
